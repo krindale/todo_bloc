@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import '../model/todo_item.dart';
-import '../util/todo_database.dart';
 
+import '../component/task_input.dart';
+import '../component/task_list.dart';
+
+import '../../../model/todo_item.dart';
+import '../../../util/todo_database.dart';
+
+// 5. Main Todo Screen Widget
 class TodoScreen extends StatefulWidget {
+  const TodoScreen({Key? key}) : super(key: key);
+
   @override
   _TodoScreenState createState() => _TodoScreenState();
 }
@@ -52,24 +58,22 @@ class _TodoScreenState extends State<TodoScreen> {
     setState(() {
       if (_editingIndex == null) {
         var newTodo = TodoItem(
-            title: _taskController.text,
-            priority: _selectedPriority,
-            dueDate: _selectedDate!,
-            isCompleted: false,
-          );
-        _addTodo(newTodo);
-        _loadTodos();
-      } else {
-        // 기존 할 일 수정
-        var updatedTodo = TodoItem(
           title: _taskController.text,
           priority: _selectedPriority,
           dueDate: _selectedDate!,
-          isCompleted: _tasks[_editingIndex!].isCompleted,
+          isCompleted: false,
         );
-        _updateTodo(_editingIndex!, updatedTodo);
-        _loadTodos();
-        _editingIndex = null; // 수정 완료 후 초기화
+        _addTodo(newTodo);
+      } else {
+        // 기존 할 일 수정
+      var updatedTodo = TodoItem(
+        title: _taskController.text,
+        priority: _selectedPriority,
+        dueDate: _selectedDate!,
+        isCompleted: _tasks[_editingIndex!].isCompleted,
+      );
+      _updateTodo(_editingIndex!, updatedTodo);
+      _editingIndex = null; // 수정 완료 후 초기화
       }
       _taskController.clear();
       _selectedDate = null;
@@ -102,167 +106,49 @@ class _TodoScreenState extends State<TodoScreen> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          _buildTaskInput(),
-          SizedBox(height: 16),
-          Expanded(child: _buildTaskList()),
-        ],
-      ),
-    );
-  }
-
-Widget _buildTaskInput() {
-  return Card(
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    elevation: 4,
-    child: Padding(
-      padding: EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          TextField(
-            controller: _taskController,
-            decoration: InputDecoration(
-              labelText: 'Task Description',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-            ),
+          TaskInput(
+            taskController: _taskController,
+            selectedPriority: _selectedPriority,
+            selectedDate: _selectedDate,
+            onPickDate: _pickDate,
+            onAddOrUpdateTask: _addOrUpdateTask,
+            onCancelEditing: _cancelEditing,
+            isEditing: _editingIndex != null,
           ),
-          SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(child: _buildPrioritySelector()),
-              if (_editingIndex != null) ...[
-                SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: _cancelEditing,
-                  child: Text('Cancel'),
-                ),
-              ],
-            ],
-          ),
-          SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  icon: Icon(Icons.date_range),
-                  label: Text(_selectedDate == null
-                      ? 'Due Date'
-                      : DateFormat.yMMMd().format(_selectedDate!)),
-                  onPressed: _pickDate,
-                ),
-              ),
-              SizedBox(width: 8),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: _addOrUpdateTask,
-                  child: Text(_editingIndex == null ? '+ Add Task' : 'Update Task'),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    ),
-  );
-}
-  Widget _buildPrioritySelector() {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: ToggleButtons(
-        borderRadius: BorderRadius.circular(12),
-        isSelected: ['High', 'Medium', 'Low'].map((e) => e == _selectedPriority).toList(),
-        onPressed: (int index) {
-          setState(() {
-            _selectedPriority = ['High', 'Medium', 'Low'][index];
-          });
-        },
-        constraints: BoxConstraints(
-          minHeight: 30.0,
-          minWidth: 60.0,
-        ),
-        children: [
-          Padding(padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0), child: Text('High')),
-          Padding(padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0), child: Text('Medium')),
-          Padding(padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0), child: Text('Low')),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTaskList() {
-    return ListView.builder(
-      itemCount: _tasks.length,
-      itemBuilder: (context, index) {
-        return _buildTaskCard(index);
-      },
-    );
-  }
-
-  Widget _buildTaskCard(int index) {
-    TodoItem task = _tasks[index];
-    Color priorityColor;
-    switch (task.priority) {
-      case 'High':
-        priorityColor = Colors.red;
-        break;
-      case 'Medium':
-        priorityColor = Colors.orange;
-        break;
-      default:
-        priorityColor = Colors.green;
-    }
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 3,
-      child: ListTile(
-        leading: Container(
-          width: 5,
-          height: double.infinity,
-          color: priorityColor,
-        ),
-        title: Text(task.title, style: TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text('Due: ${DateFormat.yMMMd().format(task.dueDate)}'),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Checkbox(
-              value: task.isCompleted,
-              onChanged: (bool? value) {
-                setState(() {
-                  _tasks[index] = TodoItem(
-                    title: task.title,
-                    priority: task.priority,
-                    dueDate: task.dueDate,
-                    isCompleted: value ?? false,
-                  );
-                });
-              },
-            ),
-            IconButton(
-              icon: Icon(Icons.edit, color: Colors.blue),
-              onPressed: () {
+          const SizedBox(height: 16),
+          Expanded(
+            child: TaskList(
+              tasks: _tasks,
+              onEdit: (index) {
                 setState(() {
                   _editingIndex = index;
-                  _taskController.text = task.title;
-                  _selectedPriority = task.priority;
-                  _selectedDate = task.dueDate;
+                  _taskController.text = _tasks[index].title;
+                  _selectedPriority = _tasks[index].priority;
+                  _selectedDate = _tasks[index].dueDate;
                 });
               },
-            ),
-            IconButton(
-              icon: Icon(Icons.delete, color: Colors.red),
-              onPressed: () {
+              onDelete: (index) {
                 setState(() {
                   _tasks.removeAt(index);
                   _deleteTodo(index);
                 });
               },
+              onCompleteChanged: (index, value) {
+                setState(() {
+                  _tasks[index] = TodoItem(
+                    title: _tasks[index].title,
+                    priority: _tasks[index].priority,
+                    dueDate: _tasks[index].dueDate,
+                    isCompleted: value ?? false,
+                  );
+                });
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
