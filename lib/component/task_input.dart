@@ -10,7 +10,8 @@ class TaskInput extends StatelessWidget {
   final VoidCallback onAddOrUpdateTask;
   final VoidCallback onCancelEditing;
   final bool isEditing;
-  String selectedPriority;
+  final String selectedPriority;
+  final Function(String) onPriorityChanged;
 
   TaskInput({
     Key? key,
@@ -21,6 +22,7 @@ class TaskInput extends StatelessWidget {
     required this.onAddOrUpdateTask,
     required this.onCancelEditing,
     required this.isEditing,
+    required this.onPriorityChanged,
   }) : super(key: key);
 
   @override
@@ -47,10 +49,7 @@ class TaskInput extends StatelessWidget {
                 Expanded(
                   child: PrioritySelector(
                     selectedPriority: selectedPriority,
-                    onPriorityChanged: (priority) {
-                      // Handle priority change in parent widget
-                      selectedPriority = priority;
-                    },
+                    onPriorityChanged: onPriorityChanged,
                   ),
                 ),
                 if (isEditing) ...[

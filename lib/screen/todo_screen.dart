@@ -117,6 +117,11 @@ class _TodoScreenState extends State<TodoScreen> {
             onAddOrUpdateTask: _addOrUpdateTask,
             onCancelEditing: _cancelEditing,
             isEditing: _editingIndex != null,
+            onPriorityChanged: (priority) {
+              setState(() {
+                _selectedPriority = priority;
+              });
+            },
           ),
           const SizedBox(height: 16),
           Expanded(
