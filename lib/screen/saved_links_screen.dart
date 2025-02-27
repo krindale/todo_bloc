@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'webview_screen.dart';
+import 'webview/webview_screen.dart';
 
 class SavedLinksScreen extends StatelessWidget {
   final List<Map<String, dynamic>> savedLinks = [

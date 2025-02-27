@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'todo_screen.dart';
-import 'task_summary_screen.dart';
-import 'saved_links_screen.dart';
+import '../todo_screen.dart';
+import '../task_summary_screen.dart';
+import '../saved_links_screen.dart';
 
 class TaskTabbarScreen extends StatelessWidget {
   @override
