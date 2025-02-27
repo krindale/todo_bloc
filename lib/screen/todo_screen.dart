@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../component/task_input.dart';
-import '../component/task_list.dart';
+import '../widgets/todo_screen/task_input.dart';
+import '../widgets/todo_screen/task_list.dart';
 
 import '../../../model/todo_item.dart';
 import '../../../util/todo_database.dart';

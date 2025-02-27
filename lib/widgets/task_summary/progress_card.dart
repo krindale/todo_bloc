@@ -1,0 +1,39 @@
+import 'package:flutter/material.dart';
+
+/// 작업 진행률을 표시하는 카드 위젯
+class ProgressCard extends StatelessWidget {
+  const ProgressCard({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Text('Progress', 
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            SizedBox(height: 10),
+            Center(
+              child: Column(
+                children: const [
+                  Text('78%',
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      )),
+                  SizedBox(height: 5),
+                  Text('14 of 18 completed',
+                      style: TextStyle(fontSize: 16)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+} 
