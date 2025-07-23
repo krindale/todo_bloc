@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import '../widgets/task_summary/task_statistics_card.dart';
 import '../widgets/task_summary/category_section.dart';
@@ -39,7 +38,6 @@ class _TaskSummaryScreenState extends State<TaskSummaryScreen> {
 
   TaskStatistics? _statistics;
   Map<String, List<TodoItem>> _categorizedTasks = {};
-  Timer? _refreshTimer;
 
   @override
   void initState() {
@@ -51,21 +49,13 @@ class _TaskSummaryScreenState extends State<TaskSummaryScreen> {
     );
     _categoryProvider = widget.categoryProvider ?? CategoryProvider();
     _loadTodos();
-    
-    // 5초마다 데이터 새로고침하여 실시간 업데이트 반영
-    _refreshTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      if (mounted) {
-        _loadTodos();
-      } else {
-        timer.cancel();
-      }
-    });
   }
 
   @override
-  void dispose() {
-    _refreshTimer?.cancel();
-    super.dispose();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // 화면이 다시 보여질 때마다 데이터 새로고침
+    _loadTodos();
   }
 
   @override
