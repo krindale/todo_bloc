@@ -1,16 +1,6 @@
 import 'package:flutter/material.dart';
 import 'category_chip.dart';
-
-/// 카테고리 데이터 모델
-class CategoryData {
-  final String label;
-  final Color color;
-
-  const CategoryData({
-    required this.label,
-    required this.color,
-  });
-}
+import '../../data/category_data.dart';
 
 /// 작업 카테고리 섹션을 표시하는 위젯
 class CategorySection extends StatelessWidget {
