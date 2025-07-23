@@ -2,13 +2,21 @@ import 'package:flutter/material.dart';
 
 import '../widgets/todo_screen/task_input.dart';
 import '../widgets/todo_screen/task_list.dart';
-
-import '../../../model/todo_item.dart';
-import '../../../util/todo_database.dart';
+import '../model/todo_item.dart';
+import '../services/todo_repository.dart';
+import '../services/hive_todo_repository.dart';
+import '../services/task_categorization_service.dart';
 
 // 5. Main Todo Screen Widget
 class TodoScreen extends StatefulWidget {
-  const TodoScreen({Key? key}) : super(key: key);
+  final TodoRepository? todoRepository;
+  final TaskCategorizationService? categorizationService;
+
+  const TodoScreen({
+    Key? key,
+    this.todoRepository,
+    this.categorizationService,
+  }) : super(key: key);
 
   @override
   _TodoScreenState createState() => _TodoScreenState();
@@ -21,15 +29,20 @@ class _TodoScreenState extends State<TodoScreen> {
   List<TodoItem> _tasks = [];
   int? _editingIndex; // 현재 수정 중인 할 일의 인덱스 (null이면 새 할 일 추가 모드)
 
+  late final TodoRepository _todoRepository;
+  late final TaskCategorizationService _categorizationService;
+
   @override
   void initState() {
     super.initState();
+    _todoRepository = widget.todoRepository ?? HiveTodoRepository();
+    _categorizationService = widget.categorizationService ?? TaskCategorizationService();
     _loadTodos();
   }
 
   // ✅ 할 일 불러오기
   void _loadTodos() async {
-    final data = await TodoDatabase.getTodos();
+    final data = await _todoRepository.getTodos();
     setState(() {
       _tasks = data;
     });
@@ -37,43 +50,51 @@ class _TodoScreenState extends State<TodoScreen> {
 
   // ✅ 할 일 추가
   void _addTodo(TodoItem newTodo) async {
-    await TodoDatabase.addTodo(newTodo);
+    await _todoRepository.addTodo(newTodo);
     _loadTodos();
   }
   // ✅ 할 일 업데이트
   void _updateTodo(int index, TodoItem updatedTodo) async {
-    await TodoDatabase.updateTodo(index, updatedTodo);
+    await _todoRepository.updateTodo(index, updatedTodo);
     _loadTodos();
   }
 
   // ✅ 할 일 삭제
   void _deleteTodo(int index) async {
-    await TodoDatabase.deleteTodo(index);
+    await _todoRepository.deleteTodo(index);
     _loadTodos();
   }
 
   void _addOrUpdateTask() {
-    if (_taskController.text.isEmpty || _selectedDate == null) return;
+    if (_taskController.text.isEmpty) return;
+
+    // 날짜가 선택되지 않은 경우 오늘 날짜를 기본값으로 사용
+    final dueDate = _selectedDate ?? DateTime.now();
 
     setState(() {
       if (_editingIndex == null) {
+        // 새 할 일 추가 - 자동 카테고리 분류
         var newTodo = TodoItem(
           title: _taskController.text,
           priority: _selectedPriority,
-          dueDate: _selectedDate!,
+          dueDate: dueDate,
           isCompleted: false,
         );
-        _addTodo(newTodo);
+        // 자동 분류된 할 일로 업데이트
+        final categorizedTodo = _categorizationService.categorizeAndUpdateTask(newTodo);
+        _addTodo(categorizedTodo);
       } else {
-        // 기존 할 일 수정
-      var updatedTodo = TodoItem(
-        title: _taskController.text,
-        priority: _selectedPriority,
-        dueDate: _selectedDate!,
-        isCompleted: _tasks[_editingIndex!].isCompleted,
-      );
-      _updateTodo(_editingIndex!, updatedTodo);
-      _editingIndex = null; // 수정 완료 후 초기화
+        // 기존 할 일 수정 - 제목이 변경되면 다시 분류
+        var updatedTodo = TodoItem(
+          title: _taskController.text,
+          priority: _selectedPriority,
+          dueDate: dueDate,
+          isCompleted: _tasks[_editingIndex!].isCompleted,
+        );
+        // 자동 분류된 할 일로 업데이트
+        final categorizedTodo = _categorizationService.categorizeAndUpdateTask(updatedTodo);
+        _updateTodo(_editingIndex!, categorizedTodo);
+        _editingIndex = null; // 수정 완료 후 초기화
       }
       _taskController.clear();
       _selectedDate = null;
@@ -148,8 +169,11 @@ class _TodoScreenState extends State<TodoScreen> {
                     priority: _tasks[index].priority,
                     dueDate: _tasks[index].dueDate,
                     isCompleted: value ?? false,
+                    category: _tasks[index].category,
                   );
                 });
+                // 데이터베이스에 업데이트하여 task summary에 실시간 반영
+                _updateTodo(index, _tasks[index]);
               },
             ),
           ),

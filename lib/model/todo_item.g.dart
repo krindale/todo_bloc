@@ -21,13 +21,14 @@ class TodoItemAdapter extends TypeAdapter<TodoItem> {
       priority: fields[1] as String,
       dueDate: fields[2] as DateTime,
       isCompleted: fields[3] as bool,
+      category: fields[4] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, TodoItem obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.title)
       ..writeByte(1)
@@ -35,7 +36,9 @@ class TodoItemAdapter extends TypeAdapter<TodoItem> {
       ..writeByte(2)
       ..write(obj.dueDate)
       ..writeByte(3)
-      ..write(obj.isCompleted);
+      ..write(obj.isCompleted)
+      ..writeByte(4)
+      ..write(obj.category);
   }
 
   @override

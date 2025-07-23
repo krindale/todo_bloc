@@ -1,13 +1,16 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:todo_bloc/model/todo_item.dart';
 import 'package:todo_bloc/services/task_statistics_service.dart';
+import 'package:todo_bloc/services/task_categorization_service.dart';
 
 void main() {
   group('TaskStatisticsService', () {
     late TaskStatisticsService service;
 
     setUp(() {
-      service = TaskStatisticsService();
+      service = TaskStatisticsService(
+        categorizationService: TaskCategorizationService(),
+      );
     });
 
     test('should calculate statistics for empty list', () {
@@ -19,6 +22,8 @@ void main() {
       expect(result.completedTasks, 0);
       expect(result.pendingTasks, 0);
       expect(result.dueTodayTasks, 0);
+      expect(result.categoryTaskCounts, <String, int>{});
+      expect(result.categoryCompletionCounts, <String, int>{});
     });
 
     test('should calculate statistics correctly', () {

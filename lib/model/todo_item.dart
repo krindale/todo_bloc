@@ -16,10 +16,14 @@ class TodoItem extends HiveObject {
   @HiveField(3)
   bool isCompleted;
 
+  @HiveField(4)
+  String? category;
+
   TodoItem({
     required this.title,
     required this.priority,
     required this.dueDate,
     this.isCompleted = false,
+    this.category,
   });
 }
