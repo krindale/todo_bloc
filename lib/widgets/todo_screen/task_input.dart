@@ -68,7 +68,7 @@ class TaskInput extends StatelessWidget {
                   child: ElevatedButton.icon(
                     icon: const Icon(Icons.date_range),
                     label: Text(selectedDate == null
-                        ? 'Due Date'
+                        ? 'Due Date (Today)'
                         : DateFormat.yMMMd().format(selectedDate!)),
                     onPressed: onPickDate,
                   ),

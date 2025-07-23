@@ -39,8 +39,8 @@ class TaskCard extends StatelessWidget {
           height: double.infinity,
           color: priorityColor,
         ),
-        title: Text(
-            task.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(task.title,
+            style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text('${DateFormat.yMMMd().format(task.dueDate)}'),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
@@ -48,14 +48,21 @@ class TaskCard extends StatelessWidget {
             Checkbox(
               value: task.isCompleted,
               onChanged: onCompleteChanged,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
+            const SizedBox(width: 4),
             IconButton(
-              icon: const Icon(Icons.edit, color: Colors.blue),
+              icon: const Icon(Icons.edit, color: Colors.blue, size: 20),
               onPressed: onEdit,
+              padding: const EdgeInsets.all(4),
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             ),
+            const SizedBox(width: 4),
             IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
+              icon: const Icon(Icons.delete, color: Colors.red, size: 20),
               onPressed: onDelete,
+              padding: const EdgeInsets.all(4),
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             ),
           ],
         ),
