@@ -39,8 +39,8 @@ class TaskInput extends StatelessWidget {
               controller: taskController,
               decoration: InputDecoration(
                 labelText: 'Task Description',
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
               ),
             ),
             const SizedBox(height: 10),
