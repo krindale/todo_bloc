@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'model/todo_item.dart';
+import 'model/saved_link.dart';
 import 'screen/tabbar/task_tabbar_screen.dart';
 import 'screen/login/login_screen.dart';
 import 'screen/login/signup_screen.dart';
@@ -14,6 +15,7 @@ void main() async {
   // ✅ Hive 초기화 (await 사용)
   await Hive.initFlutter();
   Hive.registerAdapter(TodoItemAdapter()); // TodoItem 어댑터 등록
+  Hive.registerAdapter(SavedLinkAdapter()); // SavedLink 어댑터 등록
   runApp(const MyApp());
 }
 
