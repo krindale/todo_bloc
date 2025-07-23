@@ -5,6 +5,8 @@ import '../task_summary_screen.dart';
 import '../saved_links_screen.dart';
 
 class TaskTabbarScreen extends StatelessWidget {
+  const TaskTabbarScreen({super.key});
+  
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -17,7 +19,9 @@ class TaskTabbarScreen extends StatelessWidget {
               onSelected: (value) async {
                 if (value == 'logout') {
                   await FirebaseAuth.instance.signOut();
-                  Navigator.pushReplacementNamed(context, '/login');
+                  if (context.mounted) {
+                    Navigator.pushReplacementNamed(context, '/login');
+                  }
                 }
               },
               itemBuilder: (BuildContext context) {
