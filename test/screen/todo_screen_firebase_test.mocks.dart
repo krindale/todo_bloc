@@ -306,6 +306,33 @@ class MockTodoRepository extends _i1.Mock implements _i8.TodoRepository {
   }
 
   @override
+  _i4.Future<void> updateTodoByIndex(
+    int? index,
+    _i2.TodoItem? updatedTodo,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateTodoByIndex,
+          [
+            index,
+            updatedTodo,
+          ],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> deleteTodoByIndex(int? index) => (super.noSuchMethod(
+        Invocation.method(
+          #deleteTodoByIndex,
+          [index],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
   _i4.Future<List<_i2.TodoItem>> getTodos() => (super.noSuchMethod(
         Invocation.method(
           #getTodos,
@@ -325,27 +352,20 @@ class MockTodoRepository extends _i1.Mock implements _i8.TodoRepository {
       ) as _i4.Future<void>);
 
   @override
-  _i4.Future<void> updateTodo(
-    int? index,
-    _i2.TodoItem? updatedTodo,
-  ) =>
-      (super.noSuchMethod(
+  _i4.Future<void> updateTodo(_i2.TodoItem? todo) => (super.noSuchMethod(
         Invocation.method(
           #updateTodo,
-          [
-            index,
-            updatedTodo,
-          ],
+          [todo],
         ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
 
   @override
-  _i4.Future<void> deleteTodo(int? index) => (super.noSuchMethod(
+  _i4.Future<void> deleteTodo(_i2.TodoItem? todo) => (super.noSuchMethod(
         Invocation.method(
           #deleteTodo,
-          [index],
+          [todo],
         ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),

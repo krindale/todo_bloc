@@ -5,6 +5,7 @@ import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:todo_bloc/model/todo_item.dart';
+import 'package:todo_bloc/model/todo_item_adapter.dart';
 import 'package:todo_bloc/model/saved_link.dart';
 import 'package:todo_bloc/util/todo_database.dart';
 import 'package:todo_bloc/services/saved_link_repository.dart';
@@ -21,8 +22,9 @@ void main() {
   late MockUser mockUser2;
 
   setUpAll(() async {
-    await Hive.initFlutter();
-    Hive.registerAdapter(TodoItemAdapter());
+    // 테스트 환경에서는 메모리에서 Hive 초기화
+    Hive.init('./test_hive');
+    Hive.registerAdapter(TodoItemCompatibleAdapter());
     Hive.registerAdapter(SavedLinkAdapter());
   });
 
@@ -60,7 +62,7 @@ void main() {
 
       // 첫 번째 사용자 데이터 확인
       final user1Todos = await TodoDatabase.getTodos();
-      final user1Links = user1Repository.getAllLinks();
+      final user1Links = await user1Repository.getAllLinks();
       expect(user1Todos.length, 1);
       expect(user1Links.length, 1);
       expect(user1Todos.first.title, 'User 1 Todo');
@@ -96,7 +98,7 @@ void main() {
 
       // Then: 두 번째 사용자는 첫 번째 사용자 데이터에 접근할 수 없어야 함
       final user2Todos = await TodoDatabase.getTodos();
-      final user2Links = user2Repository.getAllLinks();
+      final user2Links = await user2Repository.getAllLinks();
       expect(user2Todos.length, 1);
       expect(user2Links.length, 1);
       expect(user2Todos.first.title, 'User 2 Todo');
@@ -197,7 +199,7 @@ void main() {
           createdAt: DateTime.now(),
         );
         await repository.addLink(link);
-        userLinks[userId] = repository.getAllLinks();
+        userLinks[userId] = await repository.getAllLinks();
       }
 
       // Then: 각 사용자의 데이터가 독립적으로 관리되어야 함
@@ -251,7 +253,7 @@ void main() {
 
       // Read - 데이터 읽기
       var todos = await TodoDatabase.getTodos();
-      var links = repository.getAllLinks();
+      var links = await repository.getAllLinks();
       expect(todos.length, 1);
       expect(links.length, 1);
 
@@ -277,7 +279,7 @@ void main() {
 
       // 수정 확인
       todos = await TodoDatabase.getTodos();
-      links = repository.getAllLinks();
+      links = await repository.getAllLinks();
       expect(todos.first.title, 'Updated CRUD Todo');
       expect(todos.first.isCompleted, true);
       expect(links.first.title, 'Updated CRUD Link');
@@ -289,7 +291,7 @@ void main() {
 
       // 삭제 확인
       todos = await TodoDatabase.getTodos();
-      links = repository.getAllLinks();
+      links = await repository.getAllLinks();
       expect(todos.length, 0);
       expect(links.length, 0);
     });
@@ -329,7 +331,7 @@ void main() {
 
       // Then: 성능 및 정확성 검증
       final todos = await TodoDatabase.getTodos();
-      final links = repository.getAllLinks();
+      final links = await repository.getAllLinks();
       
       expect(todos.length, itemCount);
       expect(links.length, itemCount);

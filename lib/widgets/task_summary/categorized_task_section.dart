@@ -108,7 +108,7 @@ class CategorizedTaskSection extends StatelessWidget {
               child: Text('No tasks in this category'),
             )
           else
-            ...tasks.take(5).map((task) => _buildTaskItem(task, categoryColor)),
+            ...tasks.take(5).map((task) => _buildTaskItem(context, task, categoryColor)),
           if (tasks.length > 5)
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -125,7 +125,7 @@ class CategorizedTaskSection extends StatelessWidget {
     );
   }
 
-  Widget _buildTaskItem(TodoItem task, Color categoryColor) {
+  Widget _buildTaskItem(BuildContext context, TodoItem task, Color categoryColor) {
     return ListTile(
       dense: true,
       leading: Icon(
@@ -141,9 +141,33 @@ class CategorizedTaskSection extends StatelessWidget {
           color: task.isCompleted ? Colors.grey : null,
         ),
       ),
-      subtitle: Text(
-        'Priority: ${task.priority} • Due: ${_formatDate(task.dueDate)}',
-        style: const TextStyle(fontSize: 12),
+      subtitle: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Priority: ${task.priority} • Due: ${_formatDate(task.dueDate)}',
+            style: const TextStyle(fontSize: 12),
+          ),
+          if (task.hasAlarm) ...[
+            const SizedBox(width: 8),
+            Icon(
+              Icons.alarm,
+              size: 14,
+              color: Colors.orange.shade600,
+            ),
+            if (task.alarmTime != null) ...[
+              const SizedBox(width: 4),
+              Text(
+                TimeOfDay.fromDateTime(task.alarmTime!).format(context),
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.orange.shade600,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ],
+        ],
       ),
       trailing: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -172,13 +196,13 @@ class CategorizedTaskSection extends StatelessWidget {
   Color _getPriorityColor(String priority) {
     switch (priority.toLowerCase()) {
       case 'high':
-        return Colors.red;
+        return Colors.red.shade400;
       case 'medium':
-        return Colors.orange;
+        return Colors.blue.shade400;
       case 'low':
-        return Colors.green;
+        return Colors.green.shade400;
       default:
-        return Colors.grey;
+        return Colors.grey.shade400;
     }
   }
 

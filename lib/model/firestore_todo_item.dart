@@ -12,6 +12,9 @@ class FirestoreTodoItem {
       'isCompleted': todo.isCompleted,
       'category': todo.category,
       'userId': userId,
+      'alarmTime': todo.alarmTime != null ? Timestamp.fromDate(todo.alarmTime!) : null,
+      'hasAlarm': todo.hasAlarm,
+      'notificationId': todo.notificationId,
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
@@ -26,6 +29,9 @@ class FirestoreTodoItem {
       isCompleted: data['isCompleted'] ?? false,
       category: data['category'],
       firebaseDocId: doc.id, // Firebase 문서 ID 설정
+      alarmTime: data['alarmTime'] != null ? (data['alarmTime'] as Timestamp).toDate() : null,
+      hasAlarm: data['hasAlarm'] ?? false,
+      notificationId: data['notificationId'],
     );
   }
 
@@ -36,6 +42,9 @@ class FirestoreTodoItem {
       'dueDate': Timestamp.fromDate(todo.dueDate),
       'isCompleted': todo.isCompleted,
       'category': todo.category,
+      'alarmTime': todo.alarmTime != null ? Timestamp.fromDate(todo.alarmTime!) : null,
+      'hasAlarm': todo.hasAlarm,
+      'notificationId': todo.notificationId,
       'updatedAt': FieldValue.serverTimestamp(),
     };
   }
