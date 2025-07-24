@@ -217,4 +217,3 @@ class HiveTodoRepository implements TodoRepository {
     }
   }
 }
-}
