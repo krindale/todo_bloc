@@ -64,3 +64,6 @@ windows/flutter/generated*.cmake
 **/*.g.dart
 !**/data/category_data.g.dart
 
+macos/Flutter/GeneratedPluginRegistrant.swift
+windows/flutter/generated_plugins.cmake
+windows/flutter/generated_plugin_registrant.cc

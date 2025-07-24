@@ -67,7 +67,7 @@ class TaskTabbarScreen extends StatelessWidget {
         ),
         body: TabBarView(
           children: [
-            TodoScreen(),
+            TodoScreen.withDefaults(),
             TaskSummaryScreen(),
             SavedLinksScreen(),
           ],
