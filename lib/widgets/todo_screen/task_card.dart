@@ -22,18 +22,19 @@ class TaskCard extends StatelessWidget {
     Color priorityColor;
     switch (task.priority) {
       case 'High':
-        priorityColor = Colors.red;
+        priorityColor = Colors.red.shade400;
         break;
       case 'Medium':
-        priorityColor = Colors.orange;
+        priorityColor = Colors.blue.shade400;
         break;
       default:
-        priorityColor = Colors.green;
+        priorityColor = Colors.green.shade400;
     }
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 3,
       child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
         leading: Container(
           width: 5,
           height: double.infinity,
@@ -41,7 +42,31 @@ class TaskCard extends StatelessWidget {
         ),
         title: Text(task.title,
             style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text('${DateFormat.yMMMd().format(task.dueDate)}'),
+        subtitle: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('${DateFormat.yMMMd().format(task.dueDate)}'),
+            if (task.hasAlarm) ...[
+              const SizedBox(width: 8),
+              Icon(
+                Icons.alarm,
+                size: 16,
+                color: Colors.orange.shade600,
+              ),
+              if (task.alarmTime != null) ...[
+                const SizedBox(width: 4),
+                Text(
+                  TimeOfDay.fromDateTime(task.alarmTime!).format(context),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.orange.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ],
+          ],
+        ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

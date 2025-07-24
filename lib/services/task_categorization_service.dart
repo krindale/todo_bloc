@@ -307,6 +307,9 @@ class TaskCategorizationService {
       isCompleted: task.isCompleted,
       category: category,
       firebaseDocId: task.firebaseDocId, // Firebase 문서 ID 보존
+      alarmTime: task.alarmTime, // 알람 시간 보존
+      hasAlarm: task.hasAlarm, // 알람 설정 여부 보존
+      notificationId: task.notificationId, // 알림 ID 보존
     );
   }
 

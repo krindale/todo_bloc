@@ -8,6 +8,7 @@ import '../services/hive_todo_repository.dart';
 import '../services/task_categorization_service.dart';
 import '../services/firebase_sync_service.dart';
 import '../services/platform_strategy.dart';
+import '../services/notification_service.dart';
 
 /// Todo 관리 메인 화면 위젯
 /// 
@@ -131,11 +132,17 @@ class _TodoScreenState extends State<TodoScreen> {
   /// 할 일 입력 텍스트 컨트롤러
   final TextEditingController _taskController = TextEditingController();
   
-  /// 선택된 우선순위 (기본값: 'High')
-  String _selectedPriority = 'High';
+  /// 선택된 우선순위 (기본값: 'Medium')
+  String _selectedPriority = 'Medium';
   
   /// 선택된 마감일 (선택적)
   DateTime? _selectedDate;
+
+  /// 선택된 알람 시간 (TimeOfDay만 저장)
+  TimeOfDay? _selectedAlarmTime;
+
+  /// 알람 설정 여부
+  bool _hasAlarm = false;
   
   /// 현재 표시중인 할 일 목록
   List<TodoItem> _tasks = [];
@@ -159,6 +166,9 @@ class _TodoScreenState extends State<TodoScreen> {
   
   /// 플랫폼별 처리 전략
   late final PlatformStrategy _platformStrategy;
+
+  /// 알림 서비스
+  late final NotificationService _notificationService;
   
   /// 현재 플랫폼이 Firebase 전용인지 여부
   bool get _shouldUseFirebaseOnly => _platformStrategy.shouldUseFirebaseOnly();
@@ -180,6 +190,10 @@ class _TodoScreenState extends State<TodoScreen> {
     _categorizationService = widget.categorizationService;
     _firebaseService = widget.firebaseSyncService ?? FirebaseSyncService();
     _platformStrategy = PlatformStrategyFactory.create();
+    _notificationService = NotificationService();
+    
+    // 알림 서비스 초기화
+    _notificationService.initialize();
     
     // 모바일 플랫폼에서만 초기 로드 (Firebase 전용은 스트림 사용)
     if (!_shouldUseFirebaseOnly) {
@@ -215,9 +229,15 @@ class _TodoScreenState extends State<TodoScreen> {
   /// - **모바일**: 로컬 저장 후 UI 새로고침
   /// - **Firebase 전용**: 저장만 수행 (스트림이 자동 업데이트)
   void _addTodo(TodoItem newTodo) async {
-    await _todoRepository.addTodo(newTodo);
-    if (!_shouldUseFirebaseOnly) {
-      _loadTodos();
+    debugPrint('Adding todo: ${newTodo.title}, hasAlarm: ${newTodo.hasAlarm}, alarmTime: ${newTodo.alarmTime}');
+    try {
+      await _todoRepository.addTodo(newTodo);
+      debugPrint('Todo added successfully');
+      if (!_shouldUseFirebaseOnly) {
+        _loadTodos();
+      }
+    } catch (e) {
+      debugPrint('Error adding todo: $e');
     }
   }
   // ✅ 할 일 업데이트 (Firebase-only용)
@@ -230,6 +250,9 @@ class _TodoScreenState extends State<TodoScreen> {
         isCompleted: updatedTodo.isCompleted,
         category: updatedTodo.category,
         firebaseDocId: originalTodo.firebaseDocId,
+        alarmTime: updatedTodo.alarmTime,
+        hasAlarm: updatedTodo.hasAlarm,
+        notificationId: updatedTodo.notificationId,
       );
       await _firebaseService.updateTodoInFirestore(updatedWithDocId);
     }
@@ -259,22 +282,46 @@ class _TodoScreenState extends State<TodoScreen> {
   void _addOrUpdateTask() async {
     if (_taskController.text.isEmpty) return;
 
+    debugPrint('=== _addOrUpdateTask DEBUG START ===');
+    debugPrint('Task: ${_taskController.text}');
+    debugPrint('hasAlarm: $_hasAlarm');
+    debugPrint('selectedAlarmTime: $_selectedAlarmTime');
+    debugPrint('selectedDate: $_selectedDate');
+
     // 날짜가 선택되지 않은 경우 오늘 날짜를 기본값으로 사용
     final dueDate = _selectedDate ?? DateTime.now();
 
     setState(() {
       if (_editingIndex == null) {
         // 새 할 일 추가 - 자동 카테고리 분류
+        final alarmDateTime = _hasAlarm && _selectedAlarmTime != null 
+            ? DateTime(dueDate.year, dueDate.month, dueDate.day, _selectedAlarmTime!.hour, _selectedAlarmTime!.minute)
+            : null;
+            
+        debugPrint('Creating TodoItem with:');
+        debugPrint('  hasAlarm: $_hasAlarm');
+        debugPrint('  alarmDateTime: $alarmDateTime');
+        
         var newTodo = TodoItem(
           title: _taskController.text,
           priority: _selectedPriority,
           dueDate: dueDate,
           isCompleted: false,
           firebaseDocId: null, // 새 항목이므로 null
+          hasAlarm: _hasAlarm,
+          alarmTime: alarmDateTime,
         );
+        
+        debugPrint('Created TodoItem - hasAlarm: ${newTodo.hasAlarm}, alarmTime: ${newTodo.alarmTime}');
+        
         // 자동 분류된 할 일로 업데이트
         final categorizedTodo = _categorizationService.categorizeAndUpdateTask(newTodo);
         _addTodo(categorizedTodo);
+        
+        // 알람이 설정된 경우 알림 예약
+        if (categorizedTodo.hasAlarm) {
+          _notificationService.scheduleNotification(categorizedTodo);
+        }
       } else {
         // 기존 할 일 수정 - 제목이 변경되면 다시 분류
         if (_shouldUseFirebaseOnly && _editingTodo != null) {
@@ -286,6 +333,11 @@ class _TodoScreenState extends State<TodoScreen> {
             isCompleted: _editingTodo!.isCompleted,
             category: _editingTodo!.category,
             firebaseDocId: _editingTodo!.firebaseDocId,
+            notificationId: _editingTodo!.notificationId,
+            hasAlarm: _hasAlarm,
+            alarmTime: _hasAlarm && _selectedAlarmTime != null 
+                ? DateTime(dueDate.year, dueDate.month, dueDate.day, _selectedAlarmTime!.hour, _selectedAlarmTime!.minute)
+                : null,
           );
           // 자동 분류된 할 일로 업데이트
           final categorizedTodo = _categorizationService.categorizeAndUpdateTask(updatedTodo);
@@ -297,29 +349,61 @@ class _TodoScreenState extends State<TodoScreen> {
             _editingIndex = null;
             _taskController.clear();
             _selectedDate = null;
+            _selectedAlarmTime = null;
+            _hasAlarm = false;
           });
+          
+          // 기존 알람 취소
+          if (originalTodo.notificationId != null) {
+            _notificationService.cancelNotification(originalTodo.notificationId!);
+          }
+          
+          // 새 알람 설정
+          if (categorizedTodo.hasAlarm) {
+            _notificationService.scheduleNotification(categorizedTodo);
+          }
           
           // Firebase 업데이트 (비동기로 실행하지만 await하지 않음)
           _updateTodoFirebase(originalTodo, categorizedTodo);
           return;
         } else if (!_shouldUseFirebaseOnly && _editingIndex != null) {
           // 로컬 DB 모드
+          final originalTodo = _tasks[_editingIndex!];
           var updatedTodo = TodoItem(
             title: _taskController.text,
             priority: _selectedPriority,
             dueDate: dueDate,
-            isCompleted: _tasks[_editingIndex!].isCompleted,
-            category: _tasks[_editingIndex!].category,
-            firebaseDocId: _tasks[_editingIndex!].firebaseDocId,
+            isCompleted: originalTodo.isCompleted,
+            category: originalTodo.category,
+            firebaseDocId: originalTodo.firebaseDocId,
+            notificationId: originalTodo.notificationId,
+            hasAlarm: _hasAlarm,
+            alarmTime: _hasAlarm && _selectedAlarmTime != null 
+                ? DateTime(dueDate.year, dueDate.month, dueDate.day, _selectedAlarmTime!.hour, _selectedAlarmTime!.minute)
+                : null,
           );
+          
           // 자동 분류된 할 일로 업데이트
           final categorizedTodo = _categorizationService.categorizeAndUpdateTask(updatedTodo);
+          
+          // 기존 알람 취소
+          if (originalTodo.notificationId != null) {
+            _notificationService.cancelNotification(originalTodo.notificationId!);
+          }
+          
+          // 새 알람 설정
+          if (categorizedTodo.hasAlarm) {
+            _notificationService.scheduleNotification(categorizedTodo);
+          }
+          
           _updateTodo(_editingIndex!, categorizedTodo);
         }
         _editingIndex = null; // 수정 완료 후 초기화
       }
       _taskController.clear();
       _selectedDate = null;
+      _selectedAlarmTime = null;
+      _hasAlarm = false;
     });
   }
 
@@ -330,6 +414,8 @@ class _TodoScreenState extends State<TodoScreen> {
       _editingTodo = null;
       _taskController.clear();
       _selectedDate = null;
+      _selectedAlarmTime = null;
+      _hasAlarm = false;
     });
   }
 
@@ -383,6 +469,34 @@ class _TodoScreenState extends State<TodoScreen> {
     }
   }
 
+  /// 알람 시간 선택 다이얼로그 (시간만 선택)
+  Future<void> _pickAlarmTime() async {
+    debugPrint('_pickAlarmTime called');
+    TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: _selectedAlarmTime ?? TimeOfDay.now(),
+    );
+    
+    if (pickedTime != null) {
+      debugPrint('Time picked: $pickedTime');
+      setState(() {
+        _selectedAlarmTime = pickedTime;
+        _hasAlarm = true;
+      });
+      debugPrint('State updated - hasAlarm: $_hasAlarm, selectedAlarmTime: $_selectedAlarmTime');
+    } else {
+      debugPrint('Time picker cancelled');
+    }
+  }
+
+  /// 알람 해제
+  void _clearAlarm() {
+    setState(() {
+      _selectedAlarmTime = null;
+      _hasAlarm = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_shouldUseFirebaseOnly) {
@@ -423,6 +537,10 @@ class _TodoScreenState extends State<TodoScreen> {
                     _selectedPriority = priority;
                   });
                 },
+                alarmTime: _selectedAlarmTime,
+                onPickAlarmTime: _pickAlarmTime,
+                onClearAlarm: _clearAlarm,
+                hasAlarm: _hasAlarm,
               ),
               const SizedBox(height: 16),
               Expanded(
@@ -435,6 +553,10 @@ class _TodoScreenState extends State<TodoScreen> {
                       _taskController.text = tasks[index].title;
                       _selectedPriority = tasks[index].priority;
                       _selectedDate = tasks[index].dueDate;
+                      _selectedAlarmTime = tasks[index].alarmTime != null 
+                        ? TimeOfDay.fromDateTime(tasks[index].alarmTime!) 
+                        : null;
+                      _hasAlarm = tasks[index].hasAlarm;
                     });
                   },
                   onDelete: (index) {
@@ -448,6 +570,9 @@ class _TodoScreenState extends State<TodoScreen> {
                       isCompleted: value ?? false,
                       category: tasks[index].category,
                       firebaseDocId: tasks[index].firebaseDocId,
+                      alarmTime: tasks[index].alarmTime,
+                      hasAlarm: tasks[index].hasAlarm,
+                      notificationId: tasks[index].notificationId,
                     );
                     _updateTodoFirebase(tasks[index], updatedTodo);
                   },
@@ -478,6 +603,10 @@ class _TodoScreenState extends State<TodoScreen> {
                 _selectedPriority = priority;
               });
             },
+            alarmTime: _selectedAlarmTime,
+            onPickAlarmTime: _pickAlarmTime,
+            onClearAlarm: _clearAlarm,
+            hasAlarm: _hasAlarm,
           ),
           const SizedBox(height: 16),
           Expanded(
@@ -489,6 +618,10 @@ class _TodoScreenState extends State<TodoScreen> {
                   _taskController.text = _tasks[index].title;
                   _selectedPriority = _tasks[index].priority;
                   _selectedDate = _tasks[index].dueDate;
+                  _selectedAlarmTime = _tasks[index].alarmTime != null 
+                    ? TimeOfDay.fromDateTime(_tasks[index].alarmTime!) 
+                    : null;
+                  _hasAlarm = _tasks[index].hasAlarm;
                 });
               },
               onDelete: (index) {
@@ -503,6 +636,9 @@ class _TodoScreenState extends State<TodoScreen> {
                     isCompleted: value ?? false,
                     category: _tasks[index].category,
                     firebaseDocId: _tasks[index].firebaseDocId,
+                    alarmTime: _tasks[index].alarmTime,
+                    hasAlarm: _tasks[index].hasAlarm,
+                    notificationId: _tasks[index].notificationId,
                   );
                 });
                 _updateTodo(index, _tasks[index]);

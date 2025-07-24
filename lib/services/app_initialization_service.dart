@@ -5,6 +5,7 @@ import 'package:window_manager/window_manager.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import '../model/todo_item.dart';
+import '../model/todo_item_adapter.dart';
 import '../model/saved_link.dart';
 import '../firebase_options.dart';
 
@@ -77,7 +78,7 @@ class HiveInitializationService implements InitializationService {
   @override
   Future<void> initialize() async {
     await Hive.initFlutter();
-    Hive.registerAdapter(TodoItemAdapter());
+    Hive.registerAdapter(TodoItemCompatibleAdapter());
     Hive.registerAdapter(SavedLinkAdapter());
   }
 }
