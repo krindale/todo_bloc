@@ -19,12 +19,16 @@ class SavedLink extends HiveObject {
   @HiveField(4)
   DateTime createdAt;
 
+  @HiveField(5)
+  String? firebaseDocId; // Firebase 문서 ID 추적용
+
   SavedLink({
     required this.title,
     required this.url,
     required this.category,
     required this.colorValue,
     required this.createdAt,
+    this.firebaseDocId,
   });
 
   @override

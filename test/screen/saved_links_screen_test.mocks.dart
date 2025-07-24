@@ -113,6 +113,16 @@ class MockSavedLinkRepository extends _i1.Mock
       ) as _i3.Future<void>);
 
   @override
+  _i3.Future<void> clearUserData() => (super.noSuchMethod(
+        Invocation.method(
+          #clearUserData,
+          [],
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+
+  @override
   _i4.SavedLink? getAt(int? index) => (super.noSuchMethod(
         Invocation.method(
           #getAt,

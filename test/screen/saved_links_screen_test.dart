@@ -232,7 +232,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // 5. 로딩 상태 확인
-      expect(find.text('웹페이지 정보를 가져오는 중...'), findsAtLeastOnce);
+      expect(find.text('웹페이지 정보를 가져오는 중...'), findsOneWidget);
     });
 
     testWidgets('여러 링크 추가 시나리오 테스트', (WidgetTester tester) async {

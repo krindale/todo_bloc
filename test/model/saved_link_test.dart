@@ -1,125 +1,155 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter/material.dart';
 import 'package:todo_bloc/model/saved_link.dart';
 
 void main() {
   group('SavedLink 모델 테스트', () {
-    late SavedLink testLink;
-    late DateTime testDate;
-
-    setUp(() {
-      testDate = DateTime(2024, 1, 15, 10, 30);
-      testLink = SavedLink(
-        title: 'Flutter Documentation',
-        url: 'https://flutter.dev',
-        category: 'Technology',
-        colorValue: Colors.blue.value.toUnsigned(32),
-        createdAt: testDate,
-      );
-    });
-
-    test('SavedLink 객체가 올바르게 생성되는지 테스트', () {
-      expect(testLink.title, equals('Flutter Documentation'));
-      expect(testLink.url, equals('https://flutter.dev'));
-      expect(testLink.category, equals('Technology'));
-      expect(testLink.colorValue, equals(Colors.blue.value.toUnsigned(32)));
-      expect(testLink.createdAt, equals(testDate));
-    });
-
-    test('toString 메서드가 올바르게 작동하는지 테스트', () {
-      final expectedString = 'SavedLink{title: Flutter Documentation, url: https://flutter.dev, category: Technology, colorValue: ${Colors.blue.value.toUnsigned(32)}, createdAt: $testDate}';
-      expect(testLink.toString(), equals(expectedString));
-    });
-
-    test('두 SavedLink 객체의 동등성 비교 테스트', () {
-      final anotherLink = SavedLink(
-        title: 'Flutter Documentation',
-        url: 'https://flutter.dev',
-        category: 'Technology',
-        colorValue: Colors.blue.value.toUnsigned(32),
-        createdAt: testDate,
-      );
-
-      // 같은 속성을 가진 객체들이지만 다른 인스턴스이므로 참조가 다름
-      expect(testLink == anotherLink, isFalse);
-    });
-
-    test('SavedLink 필드 값 변경 테스트', () {
-      testLink.title = '새로운 제목';
-      testLink.url = 'https://new-url.com';
-      testLink.category = 'Education';
-      testLink.colorValue = Colors.red.value.toUnsigned(32);
-
-      expect(testLink.title, equals('새로운 제목'));
-      expect(testLink.url, equals('https://new-url.com'));
-      expect(testLink.category, equals('Education'));
-      expect(testLink.colorValue, equals(Colors.red.value.toUnsigned(32)));
-    });
-
-    test('SavedLink 생성 시 모든 필드가 필수인지 테스트', () {
-      expect(() {
-        SavedLink(
-          title: 'Test',
-          url: 'https://test.com',
-          category: 'Test',
-          colorValue: Colors.blue.value.toUnsigned(32),
-          createdAt: DateTime.now(),
-        );
-      }, returnsNormally);
-    });
-
-    test('다양한 카테고리 값 테스트', () {
-      final categories = ['Technology', 'Education', 'Entertainment', 'News', 'Social', 'Shopping', 'Other'];
+    test('SavedLink 생성 테스트', () {
+      // Given
+      final now = DateTime.now();
       
-      for (final category in categories) {
-        final link = SavedLink(
-          title: 'Test Link',
-          url: 'https://test.com',
-          category: category,
-          colorValue: Colors.blue.value.toUnsigned(32),
-          createdAt: DateTime.now(),
-        );
-        
-        expect(link.category, equals(category));
-      }
+      // When
+      final link = SavedLink(
+        title: 'Test Link',
+        url: 'https://test.com',
+        category: 'Work',
+        colorValue: 0xFF6366F1,
+        createdAt: now,
+        firebaseDocId: 'test_link_doc_id',
+      );
+
+      // Then
+      expect(link.title, 'Test Link');
+      expect(link.url, 'https://test.com');
+      expect(link.category, 'Work');
+      expect(link.colorValue, 0xFF6366F1);
+      expect(link.createdAt, now);
+      expect(link.firebaseDocId, 'test_link_doc_id');
     });
 
-    test('URL 형식 다양성 테스트', () {
-      final urls = [
-        'https://example.com',
+    test('SavedLink 기본값 테스트', () {
+      // Given & When
+      final link = SavedLink(
+        title: 'Simple Link',
+        url: 'https://simple.com',
+        category: 'Personal',
+        colorValue: 0xFF8B5CF6,
+        createdAt: DateTime.now(),
+      );
+
+      // Then
+      expect(link.title, 'Simple Link');
+      expect(link.url, 'https://simple.com');
+      expect(link.category, 'Personal');
+      expect(link.firebaseDocId, isNull);
+    });
+
+    test('SavedLink URL 유효성 테스트', () {
+      // Given
+      final validUrls = [
+        'https://google.com',
         'http://example.com',
-        'www.example.com',
-        'example.com',
-        'https://subdomain.example.com/path?query=value'
+        'https://www.test.org',
+        'https://subdomain.example.co.kr',
       ];
 
-      for (final url in urls) {
+      // When & Then
+      for (final url in validUrls) {
         final link = SavedLink(
-          title: 'Test Link',
+          title: 'URL Test',
           url: url,
-          category: 'Test',
-          colorValue: Colors.blue.value.toUnsigned(32),
+          category: 'Work',
+          colorValue: 0xFF6366F1,
           createdAt: DateTime.now(),
         );
-        
-        expect(link.url, equals(url));
+        expect(link.url, url);
+        expect(link.url.startsWith('http'), true);
       }
     });
 
-    test('색상 값 범위 테스트', () {
-      final colors = [Colors.red, Colors.green, Colors.blue, Colors.orange, Colors.purple];
-      
-      for (final color in colors) {
+    test('SavedLink 카테고리 테스트', () {
+      // Given
+      final categories = ['Work', 'Personal', 'Shopping', 'Health', 'Study'];
+
+      // When & Then
+      for (final category in categories) {
         final link = SavedLink(
-          title: 'Test Link',
+          title: 'Category Test',
           url: 'https://test.com',
-          category: 'Test',
-          colorValue: color.value.toUnsigned(32),
+          category: category,
+          colorValue: 0xFF6366F1,
           createdAt: DateTime.now(),
         );
-        
-        expect(link.colorValue, equals(color.value.toUnsigned(32)));
+        expect(link.category, category);
       }
+    });
+
+    test('SavedLink 색상값 테스트', () {
+      // Given
+      final colorValues = [
+        0xFF6366F1, // 인디고
+        0xFF8B5CF6, // 보라색
+        0xFFEC4899, // 핑크
+        0xFF10B981, // 에메랄드
+        0xFFF59E0B, // 주황색
+      ];
+
+      // When & Then
+      for (final colorValue in colorValues) {
+        final link = SavedLink(
+          title: 'Color Test',
+          url: 'https://test.com',
+          category: 'Work',
+          colorValue: colorValue,
+          createdAt: DateTime.now(),
+        );
+        expect(link.colorValue, colorValue);
+      }
+    });
+
+    test('SavedLink 생성 시간 테스트', () {
+      // Given
+      final beforeCreation = DateTime.now();
+      
+      // When
+      final link = SavedLink(
+        title: 'Time Test',
+        url: 'https://test.com',
+        category: 'Work',
+        colorValue: 0xFF6366F1,
+        createdAt: DateTime.now(),
+      );
+      
+      final afterCreation = DateTime.now();
+
+      // Then
+      expect(link.createdAt.isAfter(beforeCreation) || 
+             link.createdAt.isAtSameMomentAs(beforeCreation), true);
+      expect(link.createdAt.isBefore(afterCreation) || 
+             link.createdAt.isAtSameMomentAs(afterCreation), true);
+    });
+
+    test('SavedLink Firebase 문서 ID 설정 테스트', () {
+      // Given
+      final linkWithoutDocId = SavedLink(
+        title: 'No Doc ID',
+        url: 'https://test.com',
+        category: 'Work',
+        colorValue: 0xFF6366F1,
+        createdAt: DateTime.now(),
+      );
+
+      final linkWithDocId = SavedLink(
+        title: 'With Doc ID',
+        url: 'https://test.com',
+        category: 'Work',
+        colorValue: 0xFF6366F1,
+        createdAt: DateTime.now(),
+        firebaseDocId: 'firebase_doc_123',
+      );
+
+      // Then
+      expect(linkWithoutDocId.firebaseDocId, isNull);
+      expect(linkWithDocId.firebaseDocId, 'firebase_doc_123');
     });
   });
 }

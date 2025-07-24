@@ -29,9 +29,10 @@ class _SavedLinksScreenState extends State<SavedLinksScreen> {
     _loadLinks();
   }
 
-  void _loadLinks() {
+  void _loadLinks() async {
+    final links = await _repository.getAllLinks();
     setState(() {
-      savedLinks = _repository.getAllLinks();
+      savedLinks = links;
     });
   }
 

@@ -306,6 +306,7 @@ class TaskCategorizationService {
       dueDate: task.dueDate,
       isCompleted: task.isCompleted,
       category: category,
+      firebaseDocId: task.firebaseDocId, // Firebase 문서 ID 보존
     );
   }
 

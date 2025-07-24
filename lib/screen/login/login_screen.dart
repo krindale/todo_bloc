@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
-import 'dart:io';
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
+import '../../services/firebase_sync_service.dart';
+import '../../services/user_session_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -35,6 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
+      
       if (mounted) {
         Navigator.pushReplacementNamed(context, '/home');
       }
@@ -76,6 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       await FirebaseAuth.instance.signInWithCredential(credential);
+      
       if (mounted) {
         Navigator.pushReplacementNamed(context, '/home');
       }
@@ -87,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _signInWithApple() async {
-    if (!Platform.isIOS) {
+    if (kIsWeb || !Platform.isIOS) {
       _showErrorDialog('애플 로그인은 iOS에서만 지원됩니다.');
       return;
     }
@@ -330,7 +335,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 12),
                 
                 // Apple sign in button (iOS only)
-                if (Platform.isIOS)
+                if (!kIsWeb && Platform.isIOS)
                   SizedBox(
                     height: 48,
                     child: OutlinedButton.icon(

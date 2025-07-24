@@ -19,11 +19,15 @@ class TodoItem extends HiveObject {
   @HiveField(4)
   String? category;
 
+  @HiveField(5)
+  String? firebaseDocId; // Firebase 문서 ID 추적용
+
   TodoItem({
     required this.title,
     required this.priority,
     required this.dueDate,
     this.isCompleted = false,
     this.category,
+    this.firebaseDocId,
   });
 }

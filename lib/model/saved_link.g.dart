@@ -22,13 +22,14 @@ class SavedLinkAdapter extends TypeAdapter<SavedLink> {
       category: fields[2] as String,
       colorValue: fields[3] as int,
       createdAt: fields[4] as DateTime,
+      firebaseDocId: fields[5] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, SavedLink obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.title)
       ..writeByte(1)
@@ -38,7 +39,9 @@ class SavedLinkAdapter extends TypeAdapter<SavedLink> {
       ..writeByte(3)
       ..write(obj.colorValue)
       ..writeByte(4)
-      ..write(obj.createdAt);
+      ..write(obj.createdAt)
+      ..writeByte(5)
+      ..write(obj.firebaseDocId);
   }
 
   @override
