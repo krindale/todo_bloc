@@ -60,6 +60,9 @@ windows/flutter/generated*.cmake
 # Mockito auto-generated files
 **/*.mocks.dart
 
+# Environment variables
+.env
+
 # Build runner generated files
 **/*.g.dart
 !**/data/category_data.g.dart
@@ -67,3 +70,5 @@ windows/flutter/generated*.cmake
 macos/Flutter/GeneratedPluginRegistrant.swift
 windows/flutter/generated_plugins.cmake
 windows/flutter/generated_plugin_registrant.cc
+linux/flutter/generated_plugin_registrant.cc
+linux/flutter/generated_plugins.cmake

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:google_sign_in_all_platforms/google_sign_in_all_platforms.dart' as AllPlatforms;
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../services/firebase_sync_service.dart';
 import '../../services/user_session_service.dart';
+import '../../firebase_options.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -65,27 +67,55 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) {
-        setState(() => _isLoading = false);
-        return;
+      if (Platform.isWindows) {
+        // Windows에서는 google_sign_in_all_platforms 사용
+        final windowsGoogleSignIn = AllPlatforms.GoogleSignIn(
+          params: AllPlatforms.GoogleSignInParams(
+            clientId: DefaultFirebaseOptions.windowsGoogleClientId,
+            clientSecret: DefaultFirebaseOptions.windowsGoogleClientSecret,
+            redirectPort: 3000,
+            scopes: ['email', 'profile'],
+          ),
+        );
+        
+        final credentials = await windowsGoogleSignIn.signIn();
+        if (credentials == null) {
+          setState(() => _isLoading = false);
+          return;
+        }
+
+        // credentials에서 Firebase Auth로 로그인
+        final credential = GoogleAuthProvider.credential(
+          accessToken: credentials.accessToken,
+          idToken: credentials.idToken,
+        );
+
+        await FirebaseAuth.instance.signInWithCredential(credential);
+      } else {
+        // 다른 플랫폼에서는 기존 google_sign_in 사용
+        final googleUser = await GoogleSignIn().signIn();
+        
+        if (googleUser == null) {
+          setState(() => _isLoading = false);
+          return;
+        }
+
+        final GoogleSignInAuthentication googleAuth =
+            await googleUser.authentication;
+
+        final credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+
+        await FirebaseAuth.instance.signInWithCredential(credential);
       }
-
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      await FirebaseAuth.instance.signInWithCredential(credential);
       
       if (mounted) {
         Navigator.pushReplacementNamed(context, '/home');
       }
     } catch (e) {
-      _showErrorDialog('구글 로그인에 실패했습니다.');
+      _showErrorDialog('구글 로그인에 실패했습니다: ${e.toString()}');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

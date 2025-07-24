@@ -85,4 +85,10 @@ class DefaultFirebaseOptions {
     storageBucket: 'flutter-todo-a7fa3.firebasestorage.app',
     measurementId: 'G-E32FCXTDK6',
   );
+
+  /// Google OAuth Client ID for Windows desktop authentication
+  static const String windowsGoogleClientId = String.fromEnvironment('GOOGLE_OAUTH_CLIENT_ID', defaultValue: '');
+  
+  /// Google OAuth Client Secret for Windows desktop authentication
+  static const String windowsGoogleClientSecret = String.fromEnvironment('GOOGLE_OAUTH_CLIENT_SECRET', defaultValue: '');
 }
