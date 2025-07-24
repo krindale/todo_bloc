@@ -39,12 +39,14 @@ class FirebaseSyncService {
     final snapshot = await _firestore
         .collection(FirestoreTodoItem.collectionName)
         .where('userId', isEqualTo: _userId)
-        .orderBy('createdAt', descending: true)
         .get();
     
     final todos = snapshot.docs
         .map((doc) => FirestoreTodoItem.fromFirestore(doc))
         .toList();
+    
+    // 클라이언트 사이드에서 정렬
+    todos.sort((a, b) => b.dueDate.compareTo(a.dueDate));
     
     // 로컬 DB 초기화 후 Firestore 데이터로 대체
     await TodoDatabase.clearAll();
@@ -78,12 +80,14 @@ class FirebaseSyncService {
     final snapshot = await _firestore
         .collection(FirestoreSavedLink.collectionName)
         .where('userId', isEqualTo: _userId)
-        .orderBy('createdAt', descending: true)
         .get();
     
     final links = snapshot.docs
         .map((doc) => FirestoreSavedLink.fromFirestore(doc))
         .toList();
+    
+    // 클라이언트 사이드에서 정렬
+    links.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     
     // 로컬 DB 초기화 후 Firestore 데이터로 대체
     final repository = SavedLinkRepository();
@@ -126,11 +130,15 @@ class FirebaseSyncService {
     return _firestore
         .collection(FirestoreTodoItem.collectionName)
         .where('userId', isEqualTo: _userId)
-        .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => FirestoreTodoItem.fromFirestore(doc))
-            .toList());
+        .map((snapshot) {
+          final todos = snapshot.docs
+              .map((doc) => FirestoreTodoItem.fromFirestore(doc))
+              .toList();
+          // 클라이언트 사이드에서 정렬
+          todos.sort((a, b) => b.dueDate.compareTo(a.dueDate));
+          return todos;
+        });
   }
 
   Stream<List<SavedLink>> savedLinksStream() {
@@ -141,11 +149,59 @@ class FirebaseSyncService {
     return _firestore
         .collection(FirestoreSavedLink.collectionName)
         .where('userId', isEqualTo: _userId)
-        .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => FirestoreSavedLink.fromFirestore(doc))
-            .toList());
+        .map((snapshot) {
+          final links = snapshot.docs
+              .map((doc) => FirestoreSavedLink.fromFirestore(doc))
+              .toList();
+          // 클라이언트 사이드에서 정렬
+          links.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          return links;
+        });
+  }
+
+  // 중복 제거 함수
+  Future<void> removeDuplicateTodos() async {
+    if (!isUserSignedIn) return;
+    
+    final snapshot = await _firestore
+        .collection(FirestoreTodoItem.collectionName)
+        .where('userId', isEqualTo: _userId)
+        .get();
+    
+    // 제목과 생성일 기준으로 중복 찾기
+    Map<String, List<DocumentSnapshot>> duplicateMap = {};
+    
+    for (var doc in snapshot.docs) {
+      final data = doc.data() as Map<String, dynamic>;
+      final title = data['title'] as String;
+      final dueDate = data['dueDate'] as Timestamp;
+      final key = '$title-${dueDate.millisecondsSinceEpoch}';
+      
+      if (duplicateMap[key] == null) {
+        duplicateMap[key] = [];
+      }
+      duplicateMap[key]!.add(doc);
+    }
+    
+    // 중복된 항목들 삭제 (첫 번째 것만 남기고 나머지 삭제)
+    final batch = _firestore.batch();
+    int deletedCount = 0;
+    
+    for (var entry in duplicateMap.entries) {
+      if (entry.value.length > 1) {
+        // 첫 번째 제외하고 나머지 삭제
+        for (int i = 1; i < entry.value.length; i++) {
+          batch.delete(entry.value[i].reference);
+          deletedCount++;
+        }
+      }
+    }
+    
+    if (deletedCount > 0) {
+      await batch.commit();
+      print('$deletedCount개의 중복 Todo 항목이 삭제되었습니다.');
+    }
   }
 
   // Todo 개별 CRUD 작업
@@ -177,6 +233,50 @@ class FirebaseSyncService {
         .delete();
   }
 
+  // SavedLink 중복 제거 함수
+  Future<void> removeDuplicateSavedLinks() async {
+    if (!isUserSignedIn) return;
+    
+    final snapshot = await _firestore
+        .collection(FirestoreSavedLink.collectionName)
+        .where('userId', isEqualTo: _userId)
+        .get();
+    
+    // URL과 생성일 기준으로 중복 찾기
+    Map<String, List<DocumentSnapshot>> duplicateMap = {};
+    
+    for (var doc in snapshot.docs) {
+      final data = doc.data() as Map<String, dynamic>;
+      final url = data['url'] as String;
+      final createdAt = data['createdAt'] as Timestamp;
+      final key = '$url-${createdAt.millisecondsSinceEpoch}';
+      
+      if (duplicateMap[key] == null) {
+        duplicateMap[key] = [];
+      }
+      duplicateMap[key]!.add(doc);
+    }
+    
+    // 중복된 항목들 삭제 (첫 번째 것만 남기고 나머지 삭제)
+    final batch = _firestore.batch();
+    int deletedCount = 0;
+    
+    for (var entry in duplicateMap.entries) {
+      if (entry.value.length > 1) {
+        // 첫 번째 제외하고 나머지 삭제
+        for (int i = 1; i < entry.value.length; i++) {
+          batch.delete(entry.value[i].reference);
+          deletedCount++;
+        }
+      }
+    }
+    
+    if (deletedCount > 0) {
+      await batch.commit();
+      print('$deletedCount개의 중복 SavedLink 항목이 삭제되었습니다.');
+    }
+  }
+
   // SavedLink 개별 CRUD 작업
   Future<String?> addLinkToFirestore(SavedLink link) async {
     if (!isUserSignedIn) return null;
@@ -204,5 +304,23 @@ class FirebaseSyncService {
         .collection(FirestoreSavedLink.collectionName)
         .doc(docId)
         .delete();
+  }
+
+  // 전체 중복 데이터 정리 함수
+  Future<void> cleanupDuplicateData() async {
+    if (!isUserSignedIn) return;
+    
+    print('Firebase 중복 데이터 정리 시작...');
+    
+    try {
+      await Future.wait([
+        removeDuplicateTodos(),
+        removeDuplicateSavedLinks(),
+      ]);
+      
+      print('Firebase 중복 데이터 정리 완료');
+    } catch (e) {
+      print('중복 데이터 정리 중 오류 발생: $e');
+    }
   }
 }
