@@ -29,11 +29,11 @@ import 'package:todo_bloc/services/saved_link_repository.dart' as _i2;
 class MockSavedLinkRepository extends _i1.Mock
     implements _i2.SavedLinkRepository {
   @override
-  int get length => (super.noSuchMethod(
+  _i3.Future<int> get length => (super.noSuchMethod(
         Invocation.getter(#length),
-        returnValue: 0,
-        returnValueForMissingStub: 0,
-      ) as int);
+        returnValue: _i3.Future<int>.value(0),
+        returnValueForMissingStub: _i3.Future<int>.value(0),
+      ) as _i3.Future<int>);
 
   @override
   _i3.Future<void> init() => (super.noSuchMethod(
@@ -56,14 +56,15 @@ class MockSavedLinkRepository extends _i1.Mock
       ) as _i3.Future<void>);
 
   @override
-  List<_i4.SavedLink> getAllLinks() => (super.noSuchMethod(
+  _i3.Future<List<_i4.SavedLink>> getAllLinks() => (super.noSuchMethod(
         Invocation.method(
           #getAllLinks,
           [],
         ),
-        returnValue: <_i4.SavedLink>[],
-        returnValueForMissingStub: <_i4.SavedLink>[],
-      ) as List<_i4.SavedLink>);
+        returnValue: _i3.Future<List<_i4.SavedLink>>.value(<_i4.SavedLink>[]),
+        returnValueForMissingStub:
+            _i3.Future<List<_i4.SavedLink>>.value(<_i4.SavedLink>[]),
+      ) as _i3.Future<List<_i4.SavedLink>>);
 
   @override
   _i3.Future<void> deleteLink(_i4.SavedLink? link) => (super.noSuchMethod(
@@ -123,11 +124,12 @@ class MockSavedLinkRepository extends _i1.Mock
       ) as _i3.Future<void>);
 
   @override
-  _i4.SavedLink? getAt(int? index) => (super.noSuchMethod(
+  _i3.Future<_i4.SavedLink?> getAt(int? index) => (super.noSuchMethod(
         Invocation.method(
           #getAt,
           [index],
         ),
-        returnValueForMissingStub: null,
-      ) as _i4.SavedLink?);
+        returnValue: _i3.Future<_i4.SavedLink?>.value(),
+        returnValueForMissingStub: _i3.Future<_i4.SavedLink?>.value(),
+      ) as _i3.Future<_i4.SavedLink?>);
 }
