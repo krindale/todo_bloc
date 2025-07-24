@@ -3,10 +3,17 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:todo_bloc/util/todo_database.dart';
 import 'package:todo_bloc/services/saved_link_repository.dart';
 import 'package:todo_bloc/services/firebase_sync_service.dart';
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class UserSessionService {
   static const String _lastUserIdKey = 'last_user_id';
   static const String _lastLoginTimeKey = 'last_login_time';
+  
+  // Firebase-only 플랫폼 확인
+  static bool _shouldUseFirebaseOnly() {
+    return kIsWeb || Platform.isMacOS || Platform.isWindows;
+  }
   
   static UserSessionService? _instance;
   static UserSessionService get instance {
@@ -22,7 +29,25 @@ class UserSessionService {
     
     if (currentUser == null) {
       // 로그인하지 않은 상태
-      await _clearAllLocalData();
+      if (!_shouldUseFirebaseOnly()) {
+        await _clearAllLocalData();
+      }
+      return;
+    }
+    
+    // Firebase-only 플랫폼에서는 세션 관리가 필요 없음
+    if (_shouldUseFirebaseOnly()) {
+      print('Firebase-only 플랫폼에서는 세션 동기화를 건너뜁니다.');
+      
+      // 중복 데이터 정리
+      try {
+        final syncService = FirebaseSyncService();
+        await syncService.cleanupDuplicateData();
+      } catch (e) {
+        print('중복 데이터 정리 중 오류 발생: $e');
+      }
+      
+      await _saveCurrentUserInfo(currentUser.uid);
       return;
     }
     

@@ -31,6 +31,7 @@ class _TodoScreenState extends State<TodoScreen> {
   DateTime? _selectedDate;
   List<TodoItem> _tasks = [];
   int? _editingIndex; // 현재 수정 중인 할 일의 인덱스 (null이면 새 할 일 추가 모드)
+  TodoItem? _editingTodo; // Firebase-only 모드에서 수정 중인 Todo 저장
 
   late final TodoRepository _todoRepository;
   late final TaskCategorizationService _categorizationService;
@@ -65,12 +66,25 @@ class _TodoScreenState extends State<TodoScreen> {
       _loadTodos();
     }
   }
-  // ✅ 할 일 업데이트
+  // ✅ 할 일 업데이트 (Firebase-only용)
+  void _updateTodoFirebase(TodoItem originalTodo, TodoItem updatedTodo) async {
+    if (originalTodo.firebaseDocId != null) {
+      final updatedWithDocId = TodoItem(
+        title: updatedTodo.title,
+        priority: updatedTodo.priority,
+        dueDate: updatedTodo.dueDate,
+        isCompleted: updatedTodo.isCompleted,
+        category: updatedTodo.category,
+        firebaseDocId: originalTodo.firebaseDocId,
+      );
+      await _firebaseService.updateTodoInFirestore(updatedWithDocId);
+    }
+  }
+
+  // ✅ 할 일 업데이트 (로컬 DB용)
   void _updateTodo(int index, TodoItem updatedTodo) async {
     await _todoRepository.updateTodo(index, updatedTodo);
-    if (!_shouldUseFirebaseOnly) {
-      _loadTodos();
-    }
+    _loadTodos();
   }
 
   // ✅ 할 일 삭제
@@ -90,7 +104,7 @@ class _TodoScreenState extends State<TodoScreen> {
     }
   }
 
-  void _addOrUpdateTask() {
+  void _addOrUpdateTask() async {
     if (_taskController.text.isEmpty) return;
 
     // 날짜가 선택되지 않은 경우 오늘 날짜를 기본값으로 사용
@@ -111,17 +125,45 @@ class _TodoScreenState extends State<TodoScreen> {
         _addTodo(categorizedTodo);
       } else {
         // 기존 할 일 수정 - 제목이 변경되면 다시 분류
-        var updatedTodo = TodoItem(
-          title: _taskController.text,
-          priority: _selectedPriority,
-          dueDate: dueDate,
-          isCompleted: _tasks[_editingIndex!].isCompleted,
-          category: _tasks[_editingIndex!].category,
-          firebaseDocId: _tasks[_editingIndex!].firebaseDocId,
-        );
-        // 자동 분류된 할 일로 업데이트
-        final categorizedTodo = _categorizationService.categorizeAndUpdateTask(updatedTodo);
-        _updateTodo(_editingIndex!, categorizedTodo);
+        if (_shouldUseFirebaseOnly && _editingTodo != null) {
+          // Firebase-only 모드
+          var updatedTodo = TodoItem(
+            title: _taskController.text,
+            priority: _selectedPriority,
+            dueDate: dueDate,
+            isCompleted: _editingTodo!.isCompleted,
+            category: _editingTodo!.category,
+            firebaseDocId: _editingTodo!.firebaseDocId,
+          );
+          // 자동 분류된 할 일로 업데이트
+          final categorizedTodo = _categorizationService.categorizeAndUpdateTask(updatedTodo);
+          
+          // setState 밖에서 Firebase 업데이트 수행
+          final originalTodo = _editingTodo!;
+          setState(() {
+            _editingTodo = null;
+            _editingIndex = null;
+            _taskController.clear();
+            _selectedDate = null;
+          });
+          
+          // Firebase 업데이트 (비동기로 실행하지만 await하지 않음)
+          _updateTodoFirebase(originalTodo, categorizedTodo);
+          return;
+        } else if (!_shouldUseFirebaseOnly && _editingIndex != null) {
+          // 로컬 DB 모드
+          var updatedTodo = TodoItem(
+            title: _taskController.text,
+            priority: _selectedPriority,
+            dueDate: dueDate,
+            isCompleted: _tasks[_editingIndex!].isCompleted,
+            category: _tasks[_editingIndex!].category,
+            firebaseDocId: _tasks[_editingIndex!].firebaseDocId,
+          );
+          // 자동 분류된 할 일로 업데이트
+          final categorizedTodo = _categorizationService.categorizeAndUpdateTask(updatedTodo);
+          _updateTodo(_editingIndex!, categorizedTodo);
+        }
         _editingIndex = null; // 수정 완료 후 초기화
       }
       _taskController.clear();
@@ -133,6 +175,7 @@ class _TodoScreenState extends State<TodoScreen> {
   void _cancelEditing() {
     setState(() {
       _editingIndex = null;
+      _editingTodo = null;
       _taskController.clear();
       _selectedDate = null;
     });
@@ -236,6 +279,7 @@ class _TodoScreenState extends State<TodoScreen> {
                   onEdit: (index) {
                     setState(() {
                       _editingIndex = index;
+                      _editingTodo = tasks[index]; // Firebase-only 모드용
                       _taskController.text = tasks[index].title;
                       _selectedPriority = tasks[index].priority;
                       _selectedDate = tasks[index].dueDate;
@@ -253,7 +297,7 @@ class _TodoScreenState extends State<TodoScreen> {
                       category: tasks[index].category,
                       firebaseDocId: tasks[index].firebaseDocId,
                     );
-                    _updateTodo(index, updatedTodo);
+                    _updateTodoFirebase(tasks[index], updatedTodo);
                   },
                 ),
               ),
