@@ -1,3 +1,29 @@
+/// **Todo 데이터베이스 유틸리티**
+/// 
+/// Hive 로컬 데이터베이스와 Firebase Firestore 간의 플랫폼별 데이터 액세스를 
+/// 추상화하는 유틸리티 클래스입니다. 플랫폼에 따라 최적의 데이터 저장 방식을 선택합니다.
+/// 
+/// **플랫폼별 전략:**
+/// - **모바일 (Android/iOS)**: Hive 로컬 DB + Firebase 동기화
+/// - **데스크톱 (Windows/macOS)**: Firebase 직접 사용
+/// - **웹**: Firebase Firestore 전용
+/// 
+/// **주요 기능:**
+/// - 플랫폼 자동 감지 및 적절한 데이터소스 선택
+/// - Hive 박스 초기화 및 관리
+/// - Firebase 동기화 트리거
+/// - 데이터 CRUD 작업 추상화
+/// 
+/// **설계 패턴:**
+/// - Strategy 패턴: 플랫폼별 데이터 접근 방식
+/// - Facade 패턴: 복잡한 데이터 계층 단순화
+/// - Singleton 패턴: 전역 데이터베이스 인스턴스
+/// 
+/// **성능 최적화:**
+/// - 로컬 우선 접근 (오프라인 지원)
+/// - 백그라운드 동기화
+/// - 플랫폼별 최적화된 저장 방식
+
 import 'package:hive/hive.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:io' show Platform;

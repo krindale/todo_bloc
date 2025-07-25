@@ -1,3 +1,27 @@
+/// **로컬 알림 서비스**
+/// 
+/// 할 일 마감일 알림과 사용자 맞춤형 푸시 알림을 관리합니다.
+/// 플랫폼별 네이티브 알림 시스템을 통합하여 일관된 알림 경험을 제공합니다.
+/// 
+/// **주요 기능:**
+/// - 마감일 기반 스케줄 알림
+/// - 즉시 알림 (완료, 추가 등)
+/// - 반복 알림 설정
+/// - 알림 권한 관리
+/// - 타임존 자동 처리
+/// 
+/// **기술적 특징:**
+/// - Singleton 패턴: 전역 알림 상태 관리
+/// - flutter_local_notifications: 크로스 플랫폼 알림
+/// - timezone 패키지: 정확한 시간 스케줄링
+/// - 플랫폼별 아이콘 및 사운드
+/// 
+/// **알림 유형:**
+/// - 마감일 1일 전 알림
+/// - 마감일 당일 알림
+/// - 작업 완료 축하 알림
+/// - 일일 리마인더
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;

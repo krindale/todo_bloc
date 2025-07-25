@@ -1,7 +1,34 @@
+/// **TodoItem 데이터 모델**
+/// 
+/// 할 일 항목의 핵심 데이터 구조를 정의합니다.
+/// Hive NoSQL 데이터베이스와 Firebase Firestore 모두에서 사용 가능한
+/// 플랫폼 독립적인 모델입니다.
+/// 
+/// **주요 속성:**
+/// - title: 할 일 제목
+/// - priority: 우선순위 (High/Medium/Low)
+/// - dueDate: 마감일
+/// - isCompleted: 완료 상태
+/// - category: 카테고리 (Work, Personal, Shopping, Health)
+/// - userId: 사용자 ID (Firebase 동기화용)
+/// - createdAt: 생성 시간
+/// - id: 고유 식별자
+/// 
+/// **기술적 특징:**
+/// - @HiveType: Hive 로컬 데이터베이스 지원
+/// - HiveObject 상속: Hive의 CRUD 작업 지원
+/// - JSON 직렬화/역직렬화: Firebase 연동
+/// - 불변성 고려: 데이터 무결성 보장
+/// 
+/// **사용 위치:**
+/// - Repository 계층에서 데이터 전달
+/// - UI 위젯에서 화면 렌더링
+/// - Firebase 동기화 시 변환 대상
+
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
-part 'todo_item.g.dart'; // 자동 생성 파일
+part 'todo_item.g.dart'; // build_runner로 자동 생성
 
 @HiveType(typeId: 0)
 class TodoItem extends HiveObject {
