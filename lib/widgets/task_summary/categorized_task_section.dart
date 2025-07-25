@@ -17,16 +17,7 @@ class CategorizedTaskSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (categorizedTasks.isEmpty) {
-      return const Card(
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Text(
-            'No tasks available',
-            style: TextStyle(fontSize: 16),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      );
+      return SizedBox.shrink();
     }
 
     return Column(

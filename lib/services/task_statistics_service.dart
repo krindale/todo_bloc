@@ -35,6 +35,10 @@ class TaskStatistics {
   final int completedTasks;
   final int pendingTasks;
   final int dueTodayTasks;
+  final int delayedTasks;
+  final int todayCompletedTasks;
+  final double overallProgress;
+  final double todayProgress;
   final Map<String, int> categoryTaskCounts;
   final Map<String, int> categoryCompletionCounts;
 
@@ -43,6 +47,10 @@ class TaskStatistics {
     required this.completedTasks,
     required this.pendingTasks,
     required this.dueTodayTasks,
+    required this.delayedTasks,
+    required this.todayCompletedTasks,
+    required this.overallProgress,
+    required this.todayProgress,
     required this.categoryTaskCounts,
     required this.categoryCompletionCounts,
   });
@@ -59,6 +67,11 @@ class TaskStatisticsService {
     final completedTasks = tasks.where((task) => task.isCompleted).length;
     final pendingTasks = tasks.where((task) => !task.isCompleted).length;
     final dueTodayTasks = tasks.where((task) => _isToday(task.dueDate)).length;
+    final delayedTasks = tasks.where((task) => !task.isCompleted && _isPastDue(task.dueDate)).length;
+    final todayCompletedTasks = tasks.where((task) => task.isCompleted && _isToday(task.dueDate)).length;
+    
+    final overallProgress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0.0;
+    final todayProgress = dueTodayTasks > 0 ? (todayCompletedTasks / dueTodayTasks) * 100 : 0.0;
 
     final categoryTaskCounts = _categorizationService.getCategoryTaskCounts(tasks);
     final categoryCompletionCounts = _categorizationService.getCategoryCompletionCounts(tasks);
@@ -68,6 +81,10 @@ class TaskStatisticsService {
       completedTasks: completedTasks,
       pendingTasks: pendingTasks,
       dueTodayTasks: dueTodayTasks,
+      delayedTasks: delayedTasks,
+      todayCompletedTasks: todayCompletedTasks,
+      overallProgress: overallProgress,
+      todayProgress: todayProgress,
       categoryTaskCounts: categoryTaskCounts,
       categoryCompletionCounts: categoryCompletionCounts,
     );
@@ -78,5 +95,12 @@ class TaskStatisticsService {
     return date.year == now.year && 
            date.month == now.month && 
            date.day == now.day;
+  }
+
+  bool _isPastDue(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final targetDate = DateTime(date.year, date.month, date.day);
+    return targetDate.isBefore(today);
   }
 }

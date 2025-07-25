@@ -26,6 +26,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../model/saved_link.dart';
 import '../services/saved_link_repository.dart';
+import '../services/firebase_sync_service.dart';
+import '../services/platform_strategy.dart';
 import 'webview/webview_screen.dart';
 
 class SavedLinksScreen extends StatefulWidget {
@@ -37,14 +39,19 @@ class SavedLinksScreen extends StatefulWidget {
 
 class _SavedLinksScreenState extends State<SavedLinksScreen> {
   final SavedLinkRepository _repository = SavedLinkRepository();
+  final FirebaseSyncService _firebaseService = FirebaseSyncService();
+  late final PlatformStrategy _platformStrategy;
   List<SavedLink> savedLinks = [];
 
   final TextEditingController _urlController = TextEditingController();
   bool _isLoading = false;
 
+  bool get _shouldUseFirebaseOnly => _platformStrategy.shouldUseFirebaseOnly();
+
   @override
   void initState() {
     super.initState();
+    _platformStrategy = PlatformStrategyFactory.create();
     _initRepository();
   }
 
@@ -54,10 +61,29 @@ class _SavedLinksScreenState extends State<SavedLinksScreen> {
   }
 
   void _loadLinks() async {
-    final links = await _repository.getAllLinks();
-    setState(() {
-      savedLinks = links;
-    });
+    try {
+      print('SavedLinksScreen: Loading links...');
+      print('SavedLinksScreen: Platform strategy: ${_platformStrategy.strategyName}');
+      print('SavedLinksScreen: Should use Firebase only: $_shouldUseFirebaseOnly');
+      
+      final links = await _repository.getAllLinks();
+      print('SavedLinksScreen: Loaded ${links.length} links');
+      
+      if (mounted) {
+        setState(() {
+          savedLinks = links;
+        });
+        print('SavedLinksScreen: UI updated with ${savedLinks.length} links');
+      }
+    } catch (e) {
+      print('SavedLinksScreen: Error loading links: $e');
+      // 에러가 발생해도 빈 리스트로 초기화
+      if (mounted) {
+        setState(() {
+          savedLinks = [];
+        });
+      }
+    }
   }
 
   Future<String> _fetchWebTitle(String url) async {
