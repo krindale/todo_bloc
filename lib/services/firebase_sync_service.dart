@@ -1,3 +1,26 @@
+/// **Firebase 동기화 서비스**
+/// 
+/// 로컬 데이터(Hive)와 Firebase Firestore 간의 실시간 동기화를 담당합니다.
+/// 멀티 플랫폼 환경에서 데이터 일관성과 실시간 동기화를 보장합니다.
+/// 
+/// **주요 기능:**
+/// - Todo 항목 양방향 동기화 (로컬 ↔ Firebase)
+/// - SavedLink 실시간 동기화
+/// - 중복 데이터 자동 감지 및 정리
+/// - 사용자별 데이터 격리
+/// - 오프라인/온라인 상태 감지
+/// 
+/// **동기화 전략:**
+/// - **업로드**: 로컬 변경사항 → Firebase
+/// - **다운로드**: Firebase 변경사항 → 로컬
+/// - **충돌 해결**: 타임스탬프 기반 최신 데이터 우선
+/// - **중복 제거**: ID 기반 중복 항목 자동 정리
+/// 
+/// **아키텍처 패턴:**
+/// - Facade 패턴: 복잡한 동기화 로직 캡슐화
+/// - Observer 패턴: Firestore 실시간 리스너
+/// - Strategy 패턴: 플랫폼별 동기화 전략
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../model/todo_item.dart';

@@ -1,3 +1,30 @@
+/// **작업 통계 및 요약 화면**
+/// 
+/// 사용자의 할 일 현황을 시각적으로 분석하고 보여주는 대시보드 화면입니다.
+/// 생산성 지표, 카테고리별 분포, 진행률 등을 한눈에 확인할 수 있습니다.
+/// 
+/// **주요 기능:**
+/// - 전체 작업 통계 (완료율, 진행 상황)
+/// - 카테고리별 작업 분포 시각화
+/// - 우선순위별 작업 현황
+/// - 마감일 임박 작업 알림
+/// - 생산성 트렌드 분석
+/// 
+/// **UI 구성 요소:**
+/// - TaskStatisticsCard: 핵심 통계 지표
+/// - ProgressCard: 진행률 시각화
+/// - CategorySection: 카테고리별 분류
+/// - CategorizedTaskSection: 상세 작업 목록
+/// 
+/// **데이터 소스:**
+/// - TaskStatisticsService: 통계 계산
+/// - TaskCategorizationService: 카테고리 분석
+/// - Repository 패턴: 데이터 추상화
+/// 
+/// **반응형 설계:**
+/// - 모바일/데스크톱 최적화 레이아웃
+/// - 다양한 화면 크기 지원
+
 import 'package:flutter/material.dart';
 import '../widgets/task_summary/task_statistics_card.dart';
 import '../widgets/task_summary/category_section.dart';

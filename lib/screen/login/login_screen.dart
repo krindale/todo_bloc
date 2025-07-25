@@ -1,3 +1,31 @@
+/// **사용자 로그인 화면**
+/// 
+/// Firebase Authentication을 기반으로 한 멀티 플랫폼 로그인 시스템입니다.
+/// Google, Apple 소셜 로그인과 이메일 로그인을 지원합니다.
+/// 
+/// **지원하는 인증 방법:**
+/// - Google Sign-in (모든 플랫폼)
+/// - Apple Sign-in (iOS/macOS 전용)
+/// - 이메일/비밀번호 로그인
+/// - 익명 로그인 (개발/테스트용)
+/// 
+/// **플랫폼별 최적화:**
+/// - **모바일**: 네이티브 소셜 로그인 SDK
+/// - **데스크톱**: 웹뷰 기반 OAuth
+/// - **웹**: JavaScript SDK 연동
+/// 
+/// **보안 기능:**
+/// - Firebase Auth 토큰 기반 인증
+/// - 자동 토큰 갱신
+/// - 플랫폼별 보안 키체인 통합
+/// - 사용자 세션 자동 복원
+/// 
+/// **사용자 경험:**
+/// - 직관적인 로그인 버튼 배치
+/// - 로딩 상태 표시
+/// - 에러 처리 및 사용자 피드백
+/// - 접근성 지원
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';

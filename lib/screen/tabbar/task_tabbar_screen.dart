@@ -1,3 +1,30 @@
+/// **메인 탭바 네비게이션 화면**
+/// 
+/// 앱의 핵심 기능들을 탭 형태로 구성한 메인 네비게이션 화면입니다.
+/// Material Design의 TabBar를 활용하여 직관적인 네비게이션을 제공합니다.
+/// 
+/// **탭 구성:**
+/// - **할 일**: TodoScreen - 할 일 추가/관리
+/// - **통계**: TaskSummaryScreen - 생산성 분석
+/// - **링크**: SavedLinksScreen - 북마크 관리
+/// 
+/// **주요 기능:**
+/// - 탭 간 상태 유지 (AutomaticKeepAliveClientMixin)
+/// - 로그아웃 기능 (AppBar 액션)
+/// - Firebase 인증 상태 연동
+/// - 반응형 레이아웃 (모바일/데스크톱)
+/// 
+/// **네비게이션 패턴:**
+/// - DefaultTabController: 탭 상태 관리
+/// - 각 탭의 독립적인 상태 관리
+/// - 앱바 통합 (제목, 액션 버튼)
+/// 
+/// **사용자 경험:**
+/// - 부드러운 탭 전환 애니메이션
+/// - 현재 탭 시각적 표시
+/// - 접근성 지원 (탭 라벨)
+/// - 일관된 머티리얼 디자인
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../todo_screen.dart';

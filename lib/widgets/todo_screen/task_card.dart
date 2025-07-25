@@ -1,8 +1,30 @@
+/// **할 일 카드 위젯**
+/// 
+/// 개별 할 일 항목을 카드 형태로 표시하는 재사용 가능한 위젯입니다.
+/// Material Design 가이드라인을 따르며, 인터랙티브한 사용자 경험을 제공합니다.
+/// 
+/// **주요 기능:**
+/// - 할 일 제목, 우선순위, 마감일 표시
+/// - 완료 상태 체크박스
+/// - 편집/삭제 액션 버튼
+/// - 우선순위별 시각적 구분 (색상, 아이콘)
+/// - 마감일 임박 시 경고 표시
+/// 
+/// **UI/UX 특징:**
+/// - Material Card 디자인
+/// - 반응형 터치 피드백
+/// - 직관적인 액션 버튼 배치
+/// - 접근성 지원 (Semantics)
+/// - 애니메이션 지원 (완료 상태 변경 시)
+/// 
+/// **재사용성:**
+/// - Stateless 위젯으로 성능 최적화
+/// - 콜백 패턴으로 상위 위젯과 통신
+/// - 다양한 화면에서 활용 가능
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../model/todo_item.dart';
-
-// 3. Task Card Widget
 class TaskCard extends StatelessWidget {
   final TodoItem task;
   final VoidCallback onEdit;

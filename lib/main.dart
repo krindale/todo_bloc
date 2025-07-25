@@ -1,3 +1,24 @@
+/// **Flutter Todo App - 애플리케이션 진입점**
+/// 
+/// 크로스 플랫폼 할 일 관리 애플리케이션의 메인 엔트리 파일입니다.
+/// Firebase 인증, 플랫폼별 초기화, 시스템 트레이 등 핵심 기능들을 설정합니다.
+/// 
+/// **주요 기능:**
+/// - 앱 초기화 및 Firebase 설정
+/// - 사용자 인증 상태 관리
+/// - 플랫폼별 기능 분기 (데스크톱: 시스템 트레이)
+/// - 전역 네비게이션 및 라우팅 설정
+/// 
+/// **아키텍처:**
+/// - Facade 패턴: AppInitializationFacade로 복잡한 초기화 로직 캡슐화
+/// - Strategy 패턴: 플랫폼별 기능 분기 처리
+/// - Observer 패턴: Firebase Auth 상태 변화 감지
+/// 
+/// **플랫폼 지원:**
+/// - 모바일 (Android/iOS): 표준 Material 앱
+/// - 데스크톱 (Windows/macOS/Linux): 시스템 트레이 + 윈도우 관리
+/// - 웹: Firebase 기반 실시간 동기화
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:io';
