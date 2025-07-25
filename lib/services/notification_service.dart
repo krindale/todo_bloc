@@ -22,11 +22,14 @@
 /// - 작업 완료 축하 알림
 /// - 일일 리마인더
 
+import 'dart:io' if (dart.library.html) 'dart:html';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import '../model/todo_item.dart';
+import 'system_tray_service.dart';
+import 'web_notification_helper.dart' if (dart.library.io) 'web_notification_helper_stub.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -108,6 +111,16 @@ class NotificationService {
 
     final notificationId = todoItem.notificationId ?? DateTime.now().millisecondsSinceEpoch.remainder(100000);
     
+    if (kIsWeb) {
+      // 웹에서는 웹 알림 스케줄링
+      await _scheduleWebNotification(todoItem, scheduledTime);
+      return;
+    } else {
+      // 데스크톱에서는 시스템 트레이 알림으로 대체
+      await _scheduleWindowsNotification(todoItem, scheduledTime);
+      return;
+    }
+    
     const androidDetails = AndroidNotificationDetails(
       'todo_alarm_channel',
       'Todo 알람',
@@ -150,6 +163,102 @@ class NotificationService {
     debugPrint('알림 예약됨: ${todoItem.title} at $scheduledTime');
   }
 
+  Future<void> _scheduleWebNotification(TodoItem todoItem, tz.TZDateTime scheduledTime) async {
+    // 웹에서는 JavaScript의 setTimeout을 이용한 알림 스케줄링
+    final duration = scheduledTime.difference(tz.TZDateTime.now(tz.local));
+    
+    if (duration.isNegative) return;
+    
+    debugPrint('🌐 웹 알림 예약: ${todoItem.title} (${duration.inMinutes}분 후)');
+    
+    // Dart의 Future.delayed를 사용하여 웹 알림 스케줄링
+    Future.delayed(duration, () {
+      debugPrint('🔔 웹 알림 시간 도달: ${todoItem.title}');
+      _showWebNotification('할 일 알림', todoItem.title);
+    });
+    
+    debugPrint('✅ 웹 알림 예약됨: ${todoItem.title} at $scheduledTime');
+  }
+
+  Future<void> _scheduleWindowsNotification(TodoItem todoItem, tz.TZDateTime scheduledTime) async {
+    // Windows에서는 시스템 트레이를 통해 알림 표시
+    final duration = scheduledTime.difference(tz.TZDateTime.now(tz.local));
+    
+    if (duration.isNegative) return;
+    
+    Future.delayed(duration, () {
+      _showWindowsNotification(todoItem);
+    });
+    
+    debugPrint('Windows 알림 예약됨: ${todoItem.title} at $scheduledTime');
+  }
+
+  void _showWindowsNotification(TodoItem todoItem) {
+    if (kIsWeb) {
+      // 웹에서는 웹 푸시 알림 사용
+      _showWebNotification('할 일 알림', todoItem.title);
+      debugPrint('웹 푸시 알림 표시됨: ${todoItem.title}');
+    } else {
+      try {
+        // 데스크톱에서는 시스템 트레이를 통한 알림 표시
+        SystemTrayService().showNotification('할 일 알림', todoItem.title);
+        debugPrint('데스크톱 트레이 알림 표시됨: ${todoItem.title}');
+      } catch (e) {
+        debugPrint('데스크톱 트레이 알림 실패: $e');
+        // 폴백: 시스템 트레이를 통해 앱 포커스
+        SystemTrayService().showApp();
+      }
+    }
+  }
+
+  /// 웹 푸시 알림 표시
+  void _showWebNotification(String title, String message) {
+    if (kIsWeb) {
+      try {
+        // 웹 알림 헬퍼를 사용하여 알림 표시
+        _requestWebNotificationPermission().then((granted) {
+          if (granted) {
+            WebNotificationHelper.showWebNotification(title, message);
+            debugPrint('✅ 웹 푸시 알림 표시됨: $title - $message');
+          } else {
+            debugPrint('❌ 웹 알림 권한이 거부되었습니다');
+            _showBrowserFallbackNotification(title, message);
+          }
+        });
+      } catch (e) {
+        debugPrint('❌ 웹 알림 실패: $e');
+        _showBrowserFallbackNotification(title, message);
+      }
+    }
+  }
+
+  /// 웹 알림 권한 요청
+  Future<bool> _requestWebNotificationPermission() async {
+    if (kIsWeb) {
+      try {
+        final permission = await WebNotificationHelper.checkNotificationPermission();
+        if (permission == 'granted') {
+          return true;
+        } else if (permission == 'default') {
+          final result = await WebNotificationHelper.requestNotificationPermission();
+          return result == 'granted';
+        }
+        return false;
+      } catch (e) {
+        debugPrint('알림 권한 요청 실패: $e');
+        return false;
+      }
+    }
+    return false;
+  }
+
+  /// 브라우저 폴백 알림 (권한 없을 때)
+  void _showBrowserFallbackNotification(String title, String message) {
+    debugPrint('🔔 브라우저 폴백 알림: $title - $message');
+    // 여기서는 앱 내 알림 UI나 다른 방법을 사용할 수 있습니다
+    // 예: 스낵바, 다이얼로그 등
+  }
+
   Future<void> cancelNotification(int notificationId) async {
     if (!_initialized) await initialize();
     
@@ -168,5 +277,25 @@ class NotificationService {
     if (!_initialized) await initialize();
     
     return await _notifications.pendingNotificationRequests();
+  }
+
+  /// 테스트용 즉시 알림 표시
+  /// 
+  /// 개발 및 테스트 목적으로 즉시 알림을 표시합니다.
+  Future<void> showTestNotification([String? message]) async {
+    final testTodo = TodoItem(
+      title: message ?? '테스트 알림입니다!',
+      priority: 'High',
+      dueDate: DateTime.now(),
+      hasAlarm: true,
+    );
+    
+    if (kIsWeb) {
+      // 웹에서는 웹 푸시 알림 테스트
+      await WebNotificationHelper.testWebNotification();
+    } else {
+      // 데스크톱이나 모바일에서는 기존 알림 방식 사용
+      _showWindowsNotification(testTodo);
+    }
   }
 }

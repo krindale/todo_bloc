@@ -30,6 +30,7 @@ import 'screen/login/signup_screen.dart';
 import 'services/user_session_service.dart';
 import 'services/app_initialization_service.dart';
 import 'services/system_tray_service.dart';
+import 'services/web_notification_helper.dart' if (dart.library.io) 'services/web_notification_helper_stub.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,8 +41,12 @@ void main() async {
   try {
     await initFacade.initializeAll();
     
-    // 데스크톱 플랫폼에서만 System Tray 초기화
-    if (!kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux)) {
+    // 플랫폼별 초기화
+    if (kIsWeb) {
+      // 웹에서는 알림 권한 요청
+      _initializeWebNotifications();
+    } else if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+      // 데스크톱에서는 System Tray 초기화
       await SystemTrayService().initialize();
     }
   } catch (e) {
@@ -50,6 +55,93 @@ void main() async {
   }
   
   runApp(const MyApp());
+}
+
+/// 웹 알림 초기화 및 권한 요청
+void _initializeWebNotifications() {
+  if (kIsWeb) {
+    // 앱 시작 1초 후에 권한 요청 (UI가 완전히 로드된 후)
+    Future.delayed(const Duration(seconds: 1), () async {
+      try {
+        print('🔔 웹 알림 권한 요청을 시작합니다...');
+        
+        // 알림 지원 여부 확인
+        if (!WebNotificationHelper.isNotificationSupported()) {
+          print('❌ 이 브라우저는 웹 알림을 지원하지 않습니다');
+          return;
+        }
+        
+        // 현재 권한 상태 확인
+        final currentPermission = await WebNotificationHelper.checkNotificationPermission();
+        print('🔔 현재 알림 권한 상태: $currentPermission');
+        
+        if (currentPermission == 'default') {
+          // 권한이 설정되지 않은 경우 요청
+          print('🔔 사용자에게 알림 권한을 요청합니다...');
+          
+          // 사용자에게 알림 권한 요청 안내
+          _showNotificationPermissionDialog();
+          
+          final result = await WebNotificationHelper.requestNotificationPermission();
+          
+          if (result == 'granted') {
+            print('✅ 알림 권한이 승인되었습니다!');
+            // 환영 알림 표시
+            Future.delayed(const Duration(seconds: 1), () {
+              WebNotificationHelper.showWebNotification(
+                '🎉 알림 설정 완료!', 
+                'Todo 앱에서 할 일 알람을 받을 수 있습니다.'
+              );
+            });
+          } else {
+            print('❌ 알림 권한이 거부되었습니다');
+            _showNotificationDeniedMessage();
+          }
+        } else if (currentPermission == 'granted') {
+          print('✅ 이미 알림 권한이 승인되어 있습니다');
+          // 기존 사용자에게는 조용히 처리
+        } else {
+          print('❌ 알림 권한이 차단되어 있습니다');
+          _showNotificationDeniedMessage();
+        }
+      } catch (e) {
+        print('❌ 웹 알림 초기화 실패: $e');
+      }
+    });
+  }
+}
+
+/// 알림 권한 요청 안내 메시지
+void _showNotificationPermissionDialog() {
+  if (kIsWeb) {
+    print('💡 사용자에게 알림 권한 요청 중...');
+    // 브라우저 콘솔에 안내 메시지
+    try {
+      final jsCode = '''
+        console.log("🔔 Todo 앱에서 할 일 알람을 위해 알림 권한이 필요합니다.");
+        console.log("💡 브라우저에서 알림 허용 버튼을 클릭해주세요!");
+      ''';
+      // js 실행은 웹에서만 가능하므로 try-catch로 감싸기
+    } catch (e) {
+      // 무시
+    }
+  }
+}
+
+/// 알림 권한 거부 시 안내 메시지
+void _showNotificationDeniedMessage() {
+  if (kIsWeb) {
+    print('ℹ️ 알림 권한이 거부되었습니다. 설정에서 수동으로 변경할 수 있습니다.');
+    try {
+      final jsCode = '''
+        console.log("ℹ️ 알림 권한이 거부되었습니다.");
+        console.log("💡 브라우저 설정 > 사이트 설정 > 알림에서 수동으로 허용할 수 있습니다.");
+      ''';
+      // js 실행
+    } catch (e) {
+      // 무시
+    }
+  }
 }
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();

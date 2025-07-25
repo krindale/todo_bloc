@@ -1,6 +1,7 @@
 import 'package:system_tray/system_tray.dart';
 import 'package:window_manager/window_manager.dart';
 import 'dart:io';
+import 'dart:typed_data';
 
 /// 시스템 트레이 관리 서비스 (데스크톱 전용)
 /// 
@@ -289,4 +290,160 @@ class SystemTrayService {
       }
     }
   }
+
+  /// 시스템 트레이를 통해 알림을 표시합니다.
+  /// 
+  /// Windows에서 트레이 아이콘 근처에 풍선 형태의 알림을 표시합니다.
+  /// 이는 네이티브 Windows 알림 시스템을 사용하여 자연스러운 사용자 경험을 제공합니다.
+  /// 
+  /// Parameters:
+  ///   - title: 알림 제목
+  ///   - message: 알림 내용
+  /// 
+  /// Example:
+  /// ```dart
+  /// await SystemTrayService().showNotification('할 일 알림', '회의 준비하기');
+  /// ```
+  Future<void> showNotification(String title, String message) async {
+    if (!_isInitialized) {
+      print('System tray not initialized, cannot show notification');
+      return;
+    }
+
+    try {
+      // Windows 토스트 알림 표시 (검증된 방법)
+      await _showWindowsToastNotification(title, message);
+      
+      // 시스템 트레이 툴팁을 임시로 변경하여 추가 알림 효과
+      await _systemTray.setToolTip('$title: $message');
+      
+      // 3초 후 원래 툴팁으로 복원
+      Future.delayed(const Duration(seconds: 3), () async {
+        try {
+          await _systemTray.setToolTip('Todo 관리 앱 - 우클릭하세요');
+        } catch (e) {
+          print('Failed to restore tooltip: $e');
+        }
+      });
+      
+      print('Tray notification shown: $title - $message');
+    } catch (e) {
+      print('Failed to show tray notification: $e');
+    }
+  }
+
+
+  /// Windows 토스트 알림을 표시합니다.
+  /// 
+  /// toast.ps1 파일을 실행하여 Windows 11의 알림 센터에 토스트 알림을 표시합니다.
+  Future<void> _showWindowsToastNotification(String title, String message) async {
+    try {
+      print('Executing toast.ps1 script for notification...');
+      print('Title: $title');
+      print('Message: $message');
+
+      // toast.ps1 파일 실행
+      final result = await Process.run(
+        'powershell.exe', 
+        [
+          '-WindowStyle', 'Hidden', 
+          '-ExecutionPolicy', 'Unrestricted',
+          '-NoProfile',
+          '-NonInteractive',
+          '-File', 'toast.ps1',
+          '-Title', title,
+          '-Message', message
+        ],
+        runInShell: true,
+        workingDirectory: Directory.current.path,
+      );
+      
+      print('=== toast.ps1 Results ===');
+      print('Exit code: ${result.exitCode}');
+      print('Stdout: ${result.stdout}');
+      if (result.stderr.isNotEmpty) {
+        print('Stderr: ${result.stderr}');
+      }
+      print('========================');
+      
+      if (result.exitCode == 0 && result.stdout.contains('SUCCESS')) {
+        print('✅ toast.ps1 notification sent successfully');
+      } else {
+        print('❌ toast.ps1 notification failed');
+        // 대체 방법 시도
+        await _showFallbackNotification(title, message);
+      }
+    } catch (e) {
+      print('❌ Failed to execute toast.ps1: $e');
+      await _showFallbackNotification(title, message);
+    }
+  }
+
+  /// 대체 알림 방법 (toast.ps1 실패 시)
+  Future<void> _showFallbackNotification(String title, String message) async {
+    try {
+      print('Attempting fallback notification method...');
+      
+      // 방법 1: 더 간단한 PowerShell 스크립트
+      await _trySimplePowerShellNotification(title, message);
+      
+      // 방법 2: BurntToast 모듈 시도 (있는 경우)
+      await _tryBurntToastNotification(title, message);
+      
+    } catch (e) {
+      print('❌ All fallback notification methods failed: $e');
+    }
+  }
+
+  /// 간단한 PowerShell 알림
+  Future<void> _trySimplePowerShellNotification(String title, String message) async {
+    try {
+      final simpleScript = '''
+\$null = [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime]
+\$template = [Windows.UI.Notifications.ToastNotificationManager]::GetTemplateContent([Windows.UI.Notifications.ToastTemplateType]::ToastText02)
+\$template.SelectSingleNode('//text[@id="1"]').InnerText = "$title"
+\$template.SelectSingleNode('//text[@id="2"]').InnerText = "$message"
+\$toast = [Windows.UI.Notifications.ToastNotification]::new(\$template)
+[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier("TodoApp").Show(\$toast)
+      ''';
+      
+      final result = await Process.run(
+        'powershell.exe',
+        ['-ExecutionPolicy', 'Unrestricted', '-Command', simpleScript],
+        runInShell: true,
+      );
+      
+      if (result.exitCode == 0) {
+        print('✅ Simple PowerShell notification sent');
+      }
+    } catch (e) {
+      print('Simple PowerShell notification failed: $e');
+    }
+  }
+
+  /// BurntToast 모듈 시도
+  Future<void> _tryBurntToastNotification(String title, String message) async {
+    try {
+      final burntToastScript = '''
+if (Get-Module -ListAvailable -Name BurntToast) {
+    New-BurntToastNotification -Text "$title", "$message" -AppLogo "C:\\Windows\\System32\\imageres.dll"
+} else {
+    Write-Output "BurntToast not available"
+}
+      ''';
+      
+      final result = await Process.run(
+        'powershell.exe',
+        ['-ExecutionPolicy', 'Unrestricted', '-Command', burntToastScript],
+        runInShell: true,
+      );
+      
+      if (result.exitCode == 0 && !result.stdout.contains('not available')) {
+        print('✅ BurntToast notification sent');
+      }
+    } catch (e) {
+      print('BurntToast notification failed: $e');
+    }
+  }
+
 }
