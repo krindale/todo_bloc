@@ -13,6 +13,9 @@ void main() {
               completedTasks: 5,
               pendingTasks: 4,
               dueTodayTasks: 1,
+              delayedTasks: 2,
+              overallProgress: 50.0,
+              todayProgress: 100.0,
             ),
           ),
         ),
@@ -39,12 +42,15 @@ void main() {
               completedTasks: 0,
               pendingTasks: 0,
               dueTodayTasks: 0,
+              delayedTasks: 0,
+              overallProgress: 0.0,
+              todayProgress: 0.0,
             ),
           ),
         ),
       );
 
-      expect(find.text('0'), findsNWidgets(4));
+      expect(find.text('0'), findsNWidgets(5));
     });
 
     testWidgets('should be wrapped in a Card widget', (tester) async {
@@ -56,6 +62,9 @@ void main() {
               completedTasks: 1,
               pendingTasks: 0,
               dueTodayTasks: 0,
+              delayedTasks: 0,
+              overallProgress: 100.0,
+              todayProgress: 0.0,
             ),
           ),
         ),

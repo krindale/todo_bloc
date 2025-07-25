@@ -27,9 +27,9 @@ class TaskInfoItem extends StatelessWidget {
         ),
         Text(
           label,
-          style: TextStyle(fontSize: 14, color: Colors.black54),
+          style: TextStyle(fontSize: 10, color: Colors.black54),
         ),
       ],
     );
   }
-} 
+}

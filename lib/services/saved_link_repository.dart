@@ -1,19 +1,21 @@
 import 'package:hive/hive.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
 import '../model/saved_link.dart';
 import 'firebase_sync_service.dart';
+import 'platform_strategy.dart';
 
 class SavedLinkRepository {
   Box<SavedLink>? _box;
   final _syncService = FirebaseSyncService();
+  late final PlatformStrategy _platformStrategy;
+
+  SavedLinkRepository() {
+    _platformStrategy = PlatformStrategyFactory.create();
+  }
 
   // 플랫폼별 데이터 소스 결정
   bool _shouldUseFirebaseOnly() {
-    return kIsWeb || 
-           Platform.isMacOS || 
-           Platform.isWindows;
+    return _platformStrategy.shouldUseFirebaseOnly();
   }
 
   // 사용자별 박스명 생성
@@ -26,10 +28,23 @@ class SavedLinkRepository {
   }
 
   Future<void> init() async {
-    if (_shouldUseFirebaseOnly()) {
-      return; // Firebase-only 플랫폼에서는 로컬 DB 초기화 불필요
+    try {
+      print('SavedLinkRepository: Initializing...');
+      print('SavedLinkRepository: Platform: ${_platformStrategy.strategyName}');
+      
+      if (_shouldUseFirebaseOnly()) {
+        print('SavedLinkRepository: Firebase-only platform, skipping Hive init');
+        return; // Firebase-only 플랫폼에서는 로컬 DB 초기화 불필요
+      }
+      
+      final boxName = _getBoxName();
+      print('SavedLinkRepository: Opening Hive box: $boxName');
+      _box = await Hive.openBox<SavedLink>(boxName);
+      print('SavedLinkRepository: Hive box opened successfully');
+    } catch (e) {
+      print('SavedLinkRepository: Error during init: $e');
+      rethrow;
     }
-    _box = await Hive.openBox<SavedLink>(_getBoxName());
   }
 
   Future<void> addLink(SavedLink link) async {
@@ -62,15 +77,28 @@ class SavedLinkRepository {
   }
 
   Future<List<SavedLink>> getAllLinks() async {
-    if (_shouldUseFirebaseOnly()) {
-      // Firebase에서 직접 데이터 가져오기
-      final snapshot = await _syncService.savedLinksStream().first;
-      return snapshot;
+    try {
+      print('SavedLinkRepository: Getting all links...');
+      print('SavedLinkRepository: Should use Firebase only: ${_shouldUseFirebaseOnly()}');
+      
+      if (_shouldUseFirebaseOnly()) {
+        print('SavedLinkRepository: Loading from Firebase...');
+        // Firebase에서 직접 데이터 가져오기
+        final snapshot = await _syncService.savedLinksStream().first;
+        print('SavedLinkRepository: Firebase returned ${snapshot.length} links');
+        return snapshot;
+      }
+      
+      print('SavedLinkRepository: Loading from local Hive...');
+      _ensureInitialized();
+      final localLinks = _box!.values.toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt)); // 최신순 정렬
+      print('SavedLinkRepository: Local Hive returned ${localLinks.length} links');
+      return localLinks;
+    } catch (e) {
+      print('SavedLinkRepository: Error in getAllLinks: $e');
+      return [];
     }
-    
-    _ensureInitialized();
-    return _box!.values.toList()
-      ..sort((a, b) => b.createdAt.compareTo(a.createdAt)); // 최신순 정렬
   }
 
   Future<void> deleteLink(SavedLink link) async {
