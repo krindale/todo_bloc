@@ -33,8 +33,9 @@ class CategorizedTaskSection extends StatelessWidget {
           final tasks = entry.value;
           final totalCount = categoryTaskCounts[category] ?? 0;
           final completedCount = categoryCompletionCounts[category] ?? 0;
-          final completionRate = totalCount > 0 ? (completedCount / totalCount * 100).round() : 0;
-          
+          final completionRate =
+              totalCount > 0 ? (completedCount / totalCount * 100).round() : 0;
+
           return _buildCategoryCard(
             context,
             category,
@@ -57,7 +58,7 @@ class CategorizedTaskSection extends StatelessWidget {
     int completionRate,
   ) {
     final categoryColor = _getCategoryColor(category);
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ExpansionTile(
@@ -99,7 +100,9 @@ class CategorizedTaskSection extends StatelessWidget {
               child: Text('No tasks in this category'),
             )
           else
-            ...tasks.take(5).map((task) => _buildTaskItem(context, task, categoryColor)),
+            ...tasks
+                .take(5)
+                .map((task) => _buildTaskItem(context, task, categoryColor)),
           if (tasks.length > 5)
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -116,7 +119,8 @@ class CategorizedTaskSection extends StatelessWidget {
     );
   }
 
-  Widget _buildTaskItem(BuildContext context, TodoItem task, Color categoryColor) {
+  Widget _buildTaskItem(
+      BuildContext context, TodoItem task, Color categoryColor) {
     return ListTile(
       dense: true,
       leading: Icon(
@@ -132,7 +136,8 @@ class CategorizedTaskSection extends StatelessWidget {
           color: task.isCompleted ? Colors.grey : null,
         ),
       ),
-      subtitle: Row(
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
@@ -140,23 +145,36 @@ class CategorizedTaskSection extends StatelessWidget {
             style: const TextStyle(fontSize: 12),
           ),
           if (task.hasAlarm) ...[
-            const SizedBox(width: 8),
-            Icon(
-              Icons.alarm,
-              size: 14,
-              color: Colors.orange.shade600,
-            ),
-            if (task.alarmTime != null) ...[
-              const SizedBox(width: 4),
-              Text(
-                TimeOfDay.fromDateTime(task.alarmTime!).format(context),
-                style: TextStyle(
-                  fontSize: 11,
+            const SizedBox(height: 4),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.alarm,
+                  size: 14,
                   color: Colors.orange.shade600,
-                  fontWeight: FontWeight.w500,
                 ),
-              ),
-            ],
+                const SizedBox(width: 4),
+                Text(
+                  'Alarm: ${_formatDate(task.dueDate)}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.orange.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                if (task.alarmTime != null) ...[
+                  Text(
+                    ' at ${TimeOfDay.fromDateTime(task.alarmTime!).format(context)}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.orange.shade600,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ],
         ],
       ),
@@ -179,8 +197,9 @@ class CategorizedTaskSection extends StatelessWidget {
   }
 
   Color _getCategoryColor(String category) {
-    final categoryData = CategoryProvider.defaultCategories
-        .firstWhere((c) => c.label == category, orElse: () => const CategoryData(label: '', color: Colors.grey));
+    final categoryData = CategoryProvider.defaultCategories.firstWhere(
+        (c) => c.label == category,
+        orElse: () => const CategoryData(label: '', color: Colors.grey));
     return categoryData.color;
   }
 
@@ -198,19 +217,9 @@ class CategorizedTaskSection extends StatelessWidget {
   }
 
   String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = date.difference(now).inDays;
-    
-    if (difference == 0) {
-      return 'Today';
-    } else if (difference == 1) {
-      return 'Tomorrow';
-    } else if (difference == -1) {    
-      return 'Yesterday';
-    } else if (difference > 1) {
-      return 'In $difference days';
-    } else {
-      return '${-difference} days ago';
-    }
+    // MM/DD 형식으로 날짜 표시
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+    return '$month/$day';
   }
 }
