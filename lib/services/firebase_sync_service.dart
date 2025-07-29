@@ -71,10 +71,10 @@ class FirebaseSyncService {
     // 클라이언트 사이드에서 정렬
     todos.sort((a, b) => b.dueDate.compareTo(a.dueDate));
     
-    // 로컬 DB 초기화 후 Firestore 데이터로 대체
+    // 로컬 DB 초기화 후 Firestore 데이터로 대체 (Firebase 재업로드 방지)
     await TodoDatabase.clearAll();
     for (final todo in todos) {
-      await TodoDatabase.addTodo(todo);
+      await TodoDatabase.addTodoLocalOnly(todo);
     }
   }
 
