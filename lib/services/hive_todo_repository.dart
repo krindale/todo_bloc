@@ -2,6 +2,7 @@ import '../model/todo_item.dart';
 import '../util/todo_database.dart';
 import 'todo_repository.dart';
 import 'platform_strategy.dart';
+import 'firebase_sync_service.dart';
 
 /// Hive 로컬 데이터베이스를 기반으로 한 Todo Repository 구현체
 /// 
@@ -81,8 +82,9 @@ class HiveTodoRepository implements TodoRepository {
 
   /// 새로운 Todo 항목을 추가합니다.
   /// 
-  /// 모든 플랫폼에서 동일하게 작동하며, TodoDatabase를 통해 
-  /// Hive 로컬 저장소에 데이터를 저장합니다.
+  /// 플랫폼별로 다르게 처리됩니다:
+  /// - **Firebase 전용 플랫폼**: Firebase에만 저장
+  /// - **모바일 플랫폼**: 로컬 저장 후 Firebase 동기화
   /// 
   /// Parameters:
   ///   [todo] - 추가할 Todo 항목
@@ -91,7 +93,41 @@ class HiveTodoRepository implements TodoRepository {
   ///   데이터베이스 저장 실패 시 예외 발생
   @override
   Future<void> addTodo(TodoItem todo) async {
-    await TodoDatabase.addTodo(todo);
+    if (_platformStrategy.shouldUseFirebaseOnly()) {
+      // Firebase 전용 플랫폼: Firebase에만 저장
+      final syncService = FirebaseSyncService();
+      final docId = await syncService.addTodoToFirestore(todo);
+      if (docId != null) {
+        todo.firebaseDocId = docId;
+      }
+    } else {
+      // 모바일 플랫폼: 로컬 저장 후 백그라운드에서 Firebase 동기화
+      await TodoDatabase.addTodo(todo);
+      
+      // 백그라운드에서 Firebase에 동기화 (실패해도 앱 동작에 영향 없음)
+      _syncToFirebaseInBackground(todo);
+    }
+  }
+
+  /// 백그라운드에서 Firebase 동기화 (비동기)
+  void _syncToFirebaseInBackground(TodoItem todo) async {
+    try {
+      final syncService = FirebaseSyncService();
+      final docId = await syncService.addTodoToFirestore(todo);
+      if (docId != null) {
+        // Firebase 문서 ID를 로컬에 업데이트
+        todo.firebaseDocId = docId;
+        final todos = await getTodos();
+        final index = todos.indexWhere((t) => 
+          t.title == todo.title && t.dueDate == todo.dueDate);
+        if (index != -1) {
+          await TodoDatabase.updateTodo(index, todo);
+        }
+      }
+    } catch (e) {
+      print('백그라운드 Firebase 동기화 실패: $e');
+      // 실패해도 무시 (나중에 다시 동기화됨)
+    }
   }
 
   /// Todo 항목을 업데이트합니다.

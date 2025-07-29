@@ -39,10 +39,11 @@ class UserSessionService {
     if (_shouldUseFirebaseOnly()) {
       print('Firebase-only 플랫폼에서는 세션 동기화를 건너뜁니다.');
       
-      // 중복 데이터 정리
+      // 중복 데이터 정리 (시작 시 한 번만)
       try {
         final syncService = FirebaseSyncService();
         await syncService.cleanupDuplicateData();
+        print('Firebase 중복 데이터 정리 완료');
       } catch (e) {
         print('중복 데이터 정리 중 오류 발생: $e');
       }
@@ -65,6 +66,15 @@ class UserSessionService {
       // 같은 사용자인 경우
       print('같은 사용자입니다. Firebase에서 최신 데이터를 동기화합니다.');
       await _syncFromFirebase();
+      
+      // 중복 데이터 정리
+      try {
+        final syncService = FirebaseSyncService();
+        await syncService.cleanupDuplicateData();
+        print('Firebase 중복 데이터 정리 완료');
+      } catch (e) {
+        print('중복 데이터 정리 중 오류 발생: $e');
+      }
     }
     
     // 현재 사용자 정보 저장

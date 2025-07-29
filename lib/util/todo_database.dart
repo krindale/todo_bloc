@@ -69,35 +69,26 @@ class TodoDatabase {
     return box.values.toList();
   }
 
-  // ✅ 새로운 할 일 추가 (Firebase 동시 저장)
+  // ✅ 새로운 할 일 추가 (로컬 저장만)
   static Future<void> addTodo(TodoItem todo) async {
     if (_shouldUseFirebaseOnly()) {
-      // Firebase에만 저장
-      final docId = await _syncService.addTodoToFirestore(todo);
-      if (docId != null) {
-        todo.firebaseDocId = docId;
-      }
-      return;
+      throw Exception('Firebase-only 플랫폼에서는 이 메서드를 사용할 수 없습니다.');
     }
     
-    try {
-      // 1. Firebase에 먼저 저장하고 문서 ID 받기
-      final docId = await _syncService.addTodoToFirestore(todo);
-      
-      // 2. Firebase 문서 ID를 할당
-      if (docId != null) {
-        todo.firebaseDocId = docId;
-      }
-      
-      // 3. 로컬 Hive에 저장
-      final box = await Hive.openBox<TodoItem>(_getBoxName());
-      await box.add(todo);
-    } catch (e) {
-      print('Todo 추가 중 오류: $e');
-      // Firebase 실패해도 로컬에는 저장
-      final box = await Hive.openBox<TodoItem>(_getBoxName());
-      await box.add(todo);
+    // 로컬 Hive에만 저장 (Firebase 저장은 별도 처리)
+    final box = await Hive.openBox<TodoItem>(_getBoxName());
+    await box.add(todo);
+  }
+
+  // ✅ Firebase 동기화용 로컬 전용 저장 (Firebase 재업로드 방지)
+  static Future<void> addTodoLocalOnly(TodoItem todo) async {
+    if (_shouldUseFirebaseOnly()) {
+      throw Exception('Firebase-only 플랫폼에서는 로컬 저장이 지원되지 않습니다.');
     }
+    
+    // 무조건 로컬에만 저장 (Firebase 동기화 없음)
+    final box = await Hive.openBox<TodoItem>(_getBoxName());
+    await box.add(todo);
   }
 
   // ✅ 특정 할 일 업데이트 (Firebase 동시 수정)
