@@ -4,9 +4,10 @@
 /// Material Design의 TabBar를 활용하여 직관적인 네비게이션을 제공합니다.
 /// 
 /// **탭 구성:**
-/// - **할 일**: TodoScreen - 할 일 추가/관리
-/// - **통계**: TaskSummaryScreen - 생산성 분석
-/// - **링크**: SavedLinksScreen - 북마크 관리
+/// - **Tasks**: TodoScreen - 할 일 추가/관리
+/// - **AI Generator**: AiTodoGeneratorScreen - AI 할 일 생성
+/// - **Summary**: TaskSummaryScreen - 생산성 분석  
+/// - **Links**: SavedLinksScreen - 북마크 관리
 /// 
 /// **주요 기능:**
 /// - 탭 간 상태 유지 (AutomaticKeepAliveClientMixin)
@@ -30,6 +31,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../todo_screen.dart';
 import '../task_summary_screen.dart';
 import '../saved_links_screen.dart';
+import '../ai_todo_generator_screen.dart';
 import '../../util/todo_database.dart';
 import '../../services/saved_link_repository.dart';
 import '../../services/user_session_service.dart';
@@ -40,7 +42,7 @@ class TaskTabbarScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: Scaffold(
         appBar: AppBar(
           title: Text('Task Manager'),
@@ -86,17 +88,19 @@ class TaskTabbarScreen extends StatelessWidget {
           ],
           bottom: TabBar(
             tabs: [
-              Tab(text: 'Task List'),
-              Tab(text: 'Task Summary'),
-              Tab(text: 'Saved Links'), // 새 탭 추가
+              Tab(text: 'Tasks'),
+              Tab(text: 'AI Generator'),
+              Tab(text: 'Summary'),
+              Tab(text: 'Links'),
             ],
           ),
         ),
         body: TabBarView(
           children: [
-            TodoScreen.withDefaults(),
-            TaskSummaryScreen(),
-            SavedLinksScreen(),
+            TodoScreen.withDefaults(),      // Tasks 탭
+            AiTodoGeneratorScreen(),        // AI Generator 탭
+            TaskSummaryScreen(),            // Summary 탭  
+            SavedLinksScreen(),             // Links 탭
           ],
         ),
       ),
