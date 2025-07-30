@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/ai_todo_generator_service.dart';
+import '../../core/constants/app_constants.dart';
 
 class AiGeneratorRecommendationSection extends StatelessWidget {
   final Function(String) onRecommendationTap;
@@ -17,20 +18,20 @@ class AiGeneratorRecommendationSection extends StatelessWidget {
     return Card(
       elevation: 1,
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(LayoutConstants.defaultPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '추천 요청',
+              AppStrings.recommendationsTitle,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: LayoutConstants.cardPadding),
             Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: LayoutConstants.smallSpacing,
+              runSpacing: LayoutConstants.smallSpacing,
               children: recommendations.map((recommendation) {
                 return GestureDetector(
                   onTap: () {
@@ -39,10 +40,13 @@ class AiGeneratorRecommendationSection extends StatelessWidget {
                   },
                   child: Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        const EdgeInsets.symmetric(
+                          horizontal: LayoutConstants.defaultPadding,
+                          vertical: LayoutConstants.smallSpacing,
+                        ),
                     decoration: BoxDecoration(
                       color: Colors.blue[50],
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(LayoutConstants.chipBorderRadius),
                       border: Border.all(color: Colors.blue[200]!),
                     ),
                     child: Text(

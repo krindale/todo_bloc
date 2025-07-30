@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/app_constants.dart';
 
 class AiGeneratorErrorWidget extends StatelessWidget {
   final String errorMessage;
@@ -17,7 +18,7 @@ class AiGeneratorErrorWidget extends StatelessWidget {
       child: Card(
         elevation: 1,
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(LayoutConstants.defaultPadding),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -26,16 +27,16 @@ class AiGeneratorErrorWidget extends StatelessWidget {
                 size: 64,
                 color: Colors.red[300],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: LayoutConstants.defaultSpacing),
               Text(
                 errorMessage,
                 style: TextStyle(color: Colors.red[700]),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: LayoutConstants.defaultSpacing),
               ElevatedButton(
                 onPressed: onRetry,
-                child: Text('다시 시도'),
+                child: Text(AppStrings.retry),
               ),
             ],
           ),

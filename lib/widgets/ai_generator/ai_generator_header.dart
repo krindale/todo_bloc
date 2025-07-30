@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/app_constants.dart';
 
 class AiGeneratorHeader extends StatelessWidget {
   const AiGeneratorHeader({super.key});
@@ -8,7 +9,7 @@ class AiGeneratorHeader extends StatelessWidget {
     return Card(
       elevation: 2,
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(LayoutConstants.defaultPadding),
         child: Column(
           children: [
             Icon(
@@ -16,16 +17,16 @@ class AiGeneratorHeader extends StatelessWidget {
               size: 48,
               color: Theme.of(context).primaryColor,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: LayoutConstants.smallSpacing),
             Text(
-              'AI 할 일 생성',
+              AppStrings.aiGeneratorTitle,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: LayoutConstants.smallSpacing / 2),
             Text(
-              '추상적인 목표를 구체적인 할 일로 변환해드립니다',
+              AppStrings.aiGeneratorDescription,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Colors.grey[600],
                   ),

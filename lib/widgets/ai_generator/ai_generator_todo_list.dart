@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../model/todo_item.dart';
+import '../../core/constants/app_constants.dart';
 
 class AiGeneratorTodoList extends StatelessWidget {
   final List<TodoItem> todos;
@@ -26,7 +27,7 @@ class AiGeneratorTodoList extends StatelessWidget {
         children: [
           // 헤더
           Container(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(LayoutConstants.defaultPadding),
             decoration: BoxDecoration(
               color: Colors.blue[50],
               borderRadius: BorderRadius.only(
@@ -59,7 +60,7 @@ class AiGeneratorTodoList extends StatelessWidget {
 
           // 할 일 목록
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(LayoutConstants.defaultPadding),
             child: Wrap(
               spacing: 8.0,
               runSpacing: 8.0,
@@ -75,14 +76,14 @@ class AiGeneratorTodoList extends StatelessWidget {
                       : MediaQuery.of(context).size.width - 64,
                   decoration: BoxDecoration(
                     color: isSelected ? Colors.blue[50] : Colors.white,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(LayoutConstants.largeBorderRadius),
                     border: Border.all(
                       color: isSelected ? Colors.blue[300]! : Colors.grey[300]!,
                     ),
                   ),
                   child: InkWell(
                     onTap: () => onTodoToggle(index, !isSelected),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(LayoutConstants.largeBorderRadius),
                     child: Padding(
                       padding: const EdgeInsets.all(12.0),
                       child: Column(
@@ -156,7 +157,7 @@ class AiGeneratorTodoList extends StatelessWidget {
 
           // 저장 및 다시 생성 버튼
           Container(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(LayoutConstants.defaultPadding),
             child: Column(
               children: [
                 // 저장 버튼

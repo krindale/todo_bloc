@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/app_constants.dart';
 
 class AiGeneratorInputSection extends StatelessWidget {
   final TextEditingController controller;
@@ -22,7 +23,7 @@ class AiGeneratorInputSection extends StatelessWidget {
       child: Card(
         elevation: 1,
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(LayoutConstants.defaultPadding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -33,27 +34,27 @@ class AiGeneratorInputSection extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: LayoutConstants.cardPadding),
               ],
               TextField(
                 controller: controller,
                 maxLines: hasResults ? 1 : 3,
                 decoration: InputDecoration(
                   hintText: hasResults
-                      ? '새로운 요청을 입력하세요'
-                      : '예: 건강을 위한 플랜을 짜줘, 새로운 기술을 배우고 싶어',
+                      ? AppStrings.newRequestPlaceholder
+                      : AppStrings.aiRequestPlaceholder,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(LayoutConstants.defaultBorderRadius),
                   ),
                   filled: true,
                   fillColor: Colors.grey[50],
                   contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
+                    horizontal: LayoutConstants.defaultPadding,
+                    vertical: LayoutConstants.cardPadding,
                   ),
                 ),
               ),
-              SizedBox(height: hasResults ? 8 : 16),
+              SizedBox(height: hasResults ? LayoutConstants.smallSpacing : LayoutConstants.defaultSpacing),
               ElevatedButton.icon(
                 onPressed: isGenerating ? null : onGenerate,
                 icon: isGenerating
@@ -66,13 +67,13 @@ class AiGeneratorInputSection extends StatelessWidget {
                         ),
                       )
                     : Icon(Icons.auto_awesome),
-                label: Text(isGenerating ? 'AI가 생각 중...' : 'AI로 할 일 생성'),
+                label: Text(isGenerating ? AppStrings.generating : AppStrings.generateButton),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
-                    vertical: 16,
+                    vertical: LayoutConstants.defaultPadding,
                   ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(LayoutConstants.defaultBorderRadius),
                   ),
                 ),
               ),
