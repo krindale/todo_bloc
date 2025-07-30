@@ -7,23 +7,8 @@ import 'package:todo_bloc/services/platform_strategy.dart';
 import 'package:todo_bloc/util/todo_database.dart';
 
 // Mock 클래스들 생성
-@GenerateMocks([PlatformStrategy, TodoDatabase])
+@GenerateMocks([PlatformStrategy])
 import 'hive_todo_repository_test.mocks.dart';
-
-// Mock TodoDatabase를 위한 추가 클래스
-class MockTodoDatabase extends Mock {
-  static Future<List<TodoItem>> getTodos() => MockTodoDatabase()._getTodos();
-  static Future<void> addTodo(TodoItem todo) => MockTodoDatabase()._addTodo(todo);
-  static Future<void> updateTodo(int index, TodoItem todo) => MockTodoDatabase()._updateTodo(index, todo);
-  static Future<void> deleteTodo(int index) => MockTodoDatabase()._deleteTodo(index);
-  static Future<void> deleteTodoByItem(TodoItem todo) => MockTodoDatabase()._deleteTodoByItem(todo);
-
-  Future<List<TodoItem>> _getTodos();
-  Future<void> _addTodo(TodoItem todo);
-  Future<void> _updateTodo(int index, TodoItem todo);
-  Future<void> _deleteTodo(int index);
-  Future<void> _deleteTodoByItem(TodoItem todo);
-}
 
 /// HiveTodoRepository 구현체 테스트
 /// 

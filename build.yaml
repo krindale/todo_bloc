@@ -1,0 +1,11 @@
+# Riverpod code generation configuration
+targets:
+  $default:
+    builders:
+      riverpod_generator:riverpod_generator:
+        generate_for:
+          - lib/**
+        options:
+          # Generate providers with correct suffixes
+          provider_name_prefix: ""
+          provider_name_suffix: "Provider"
