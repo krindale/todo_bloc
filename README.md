@@ -34,12 +34,12 @@
 
 ## 🎯 지원 플랫폼
 
-- **📱 Android** - Hive 로컬 DB + Firebase 클라우드 동기화
-- **🍎 iOS** - Hive 로컬 DB + Firebase 클라우드 동기화  
-- **🌐 Web** - Firebase 직접 연결로 실시간 동기화
-- **🪟 Windows** - Firebase + 시스템 트레이 + 알림 시스템
-- **🖥️ macOS** - Firebase + 시스템 트레이 + 네이티브 알림
-- **🐧 Linux** - Firebase 기반 크로스 플랫폼 지원
+- **📱 Android** - Hive 로컬 DB + Firebase 클라우드 동기화 + Riverpod 상태 관리
+- **🍎 iOS** - Hive 로컬 DB + Firebase 클라우드 동기화 + Riverpod 상태 관리
+- **🌐 Web** - Firebase 직접 연결 + Riverpod로 실시간 동기화
+- **🪟 Windows** - Firebase + 시스템 트레이 + 알림 시스템 + Riverpod
+- **🖥️ macOS** - Firebase + 시스템 트레이 + 네이티브 알림 + Riverpod
+- **🐧 Linux** - Firebase 기반 크로스 플랫폼 지원 + Riverpod
 
 ## 🔧 기술 스택
 
@@ -54,6 +54,7 @@
 - **Hive**: 고성능 로컬 NoSQL 데이터베이스
 
 ### 🏗️ 아키텍처 패턴
+- **Riverpod**: 현대적인 반응형 상태 관리 솔루션
 - **Repository Pattern**: 데이터 계층 완전 추상화
 - **Service Layer**: 비즈니스 로직 분리 및 재사용
 - **Dependency Injection**: 테스트 가능한 모듈형 설계
@@ -75,57 +76,102 @@
 - **mockito** (v5.4.4): 의존성 목킹
 - **build_runner** (v2.4.4): 코드 생성 자동화
 - **flutter_lints** (v5.0.0): 코드 품질 분석
+- **riverpod_lint** (v2.3.7): Riverpod 코드 품질 검사
+
+### 🧠 AI & 자동화
+- **google_generative_ai** (v0.4.6): Gemini AI 통합
+- **flutter_dotenv** (v5.1.0): 환경 변수 관리
+- **get_it** (v7.7.0): 서비스 로케이터 패턴
+
+### 🔄 상태 관리
+- **flutter_riverpod** (v2.4.9): 현대적 상태 관리
+- **riverpod_annotation** (v2.3.3): 코드 생성 어노테이션
+- **riverpod_generator** (v2.3.9): Provider 자동 생성
 
 ## 📁 프로젝트 구조
 
 ```
 lib/
-├── config/                     # 앱 설정 및 구성
-├── data/                      # 정적 데이터 (카테고리 등)
-│   └── category_data.dart
-├── model/                     # 데이터 모델 (Hive & Firestore)
-│   ├── todo_item.dart         # 할 일 모델
-│   ├── saved_link.dart        # 링크 모델
-│   ├── firestore_todo_item.dart
-│   └── firestore_saved_link.dart
-├── screen/                    # UI 화면
-│   ├── todo_screen.dart       # 메인 할 일 화면
-│   ├── saved_links_screen.dart # 링크 관리 화면
-│   ├── task_summary_screen.dart # 작업 통계 화면
-│   ├── login/                 # 인증 화면들
+├── core/                           # 핵심 아키텍처 컴포넌트
+│   ├── constants/                  # 앱 상수 정의
+│   │   └── app_constants.dart
+│   ├── di/                        # 의존성 주입 (Service Locator)
+│   │   └── service_locator.dart
+│   ├── platform/                  # 플랫폼별 전략 패턴
+│   │   ├── platform_info.dart
+│   │   └── platform_strategy.dart
+│   ├── providers/                 # Riverpod Provider 정의
+│   │   ├── ai_todo_provider.dart         # AI Todo 상태 관리
+│   │   ├── platform_provider.dart       # 플랫폼 상태 관리
+│   │   ├── repository_provider.dart     # Repository 제공
+│   │   ├── todo_provider.dart           # Todo 상태 관리
+│   │   └── providers.dart               # Provider 통합
+│   ├── utils/                     # 핵심 유틸리티
+│   │   ├── app_logger.dart
+│   │   └── error_handler.dart
+│   └── widgets/                   # 공통 기본 위젯
+│       └── base_widget.dart
+├── data/                          # 정적 데이터
+│   └── category_data.dart         # 카테고리 데이터
+├── model/                         # 데이터 모델 (Hive & Firestore)
+│   ├── todo_item.dart             # 할 일 모델 (Hive)
+│   ├── saved_link.dart            # 링크 모델 (Hive)
+│   ├── firestore_todo_item.dart   # Firestore Todo 모델
+│   ├── firestore_saved_link.dart  # Firestore 링크 모델
+│   └── todo_item_adapter.dart     # Hive 어댑터
+├── screen/                        # UI 화면
+│   ├── ai_todo_generator_screen.dart    # AI Todo 생성 화면
+│   ├── todo_screen.dart                 # 메인 할 일 화면
+│   ├── saved_links_screen.dart          # 링크 관리 화면
+│   ├── task_summary_screen.dart         # 작업 통계 화면
+│   ├── login/                           # 인증 화면들
 │   │   ├── login_screen.dart
 │   │   └── signup_screen.dart
-│   ├── tabbar/                # 탭 네비게이션
+│   ├── tabbar/                          # 탭 네비게이션
 │   │   └── task_tabbar_screen.dart
-│   └── webview/               # 웹뷰 화면
+│   └── webview/                         # 웹뷰 화면
 │       └── webview_screen.dart
-├── services/                  # 비즈니스 로직 서비스
-│   ├── app_initialization_service.dart    # 앱 초기화
-│   ├── firebase_sync_service.dart         # Firebase 동기화
-│   ├── notification_service.dart          # 알림 관리
-│   ├── system_tray_service.dart          # 시스템 트레이
-│   ├── task_categorization_service.dart  # 작업 분류
-│   ├── task_statistics_service.dart      # 통계 서비스
-│   ├── user_session_service.dart         # 사용자 세션
-│   ├── platform_strategy.dart            # 플랫폼별 전략
-│   ├── todo_repository.dart              # Repository 인터페이스
-│   ├── hive_todo_repository.dart         # Hive 구현체
-│   └── saved_link_repository.dart        # 링크 저장소
-├── widgets/                   # 재사용 가능한 위젯
-│   ├── todo_screen/          # 할 일 화면 위젯들
+├── services/                      # 비즈니스 로직 서비스
+│   ├── ai_todo_generator_service.dart   # AI Todo 생성
+│   ├── gemini_service.dart              # Gemini AI 통합
+│   ├── app_initialization_service.dart  # 앱 초기화
+│   ├── firebase_sync_service.dart       # Firebase 동기화
+│   ├── notification_service.dart        # 알림 관리
+│   ├── system_tray_service.dart         # 시스템 트레이
+│   ├── task_categorization_service.dart # 작업 분류
+│   ├── task_statistics_service.dart     # 통계 서비스
+│   ├── user_session_service.dart        # 사용자 세션
+│   ├── platform_strategy.dart           # 플랫폼별 전략
+│   ├── todo_repository.dart             # Repository 인터페이스
+│   ├── hive_todo_repository.dart        # Hive 구현체
+│   ├── saved_link_repository.dart       # 링크 저장소
+│   ├── web_notification_helper.dart     # 웹 알림 헬퍼
+│   └── web_notification_helper_stub.dart
+├── widgets/                       # 재사용 가능한 위젯
+│   ├── ai_generator/              # AI 생성 위젯들
+│   │   ├── ai_generator_error_widget.dart
+│   │   ├── ai_generator_header.dart
+│   │   ├── ai_generator_input_section.dart
+│   │   ├── ai_generator_recommendation_section.dart
+│   │   └── ai_generator_todo_list.dart
+│   ├── common/                    # 공통 위젯
+│   │   └── ring_chart.dart        # 도넛 차트
+│   ├── todo_screen/              # 할 일 화면 위젯들
 │   │   ├── task_card.dart
 │   │   ├── task_input.dart
 │   │   ├── task_list.dart
 │   │   └── priority_selector.dart
-│   └── task_summary/         # 통계 화면 위젯들
+│   └── task_summary/             # 통계 화면 위젯들
 │       ├── progress_card.dart
 │       ├── task_statistics_card.dart
+│       ├── category_chip.dart
 │       ├── category_section.dart
-│       └── categorized_task_section.dart
-├── util/                     # 유틸리티
-│   └── todo_database.dart    # 데이터베이스 헬퍼
-├── firebase_options.dart     # Firebase 구성
-└── main.dart                # 앱 진입점
+│       ├── categorized_task_section.dart
+│       └── task_info_item.dart
+├── util/                         # 유틸리티
+│   └── todo_database.dart        # 데이터베이스 헬퍼
+├── firebase_options.dart         # Firebase 구성
+└── main.dart                    # 앱 진입점
 ```
 
 ## 🚀 빠른 시작
@@ -283,6 +329,8 @@ flutter build ios --release                    # iOS (macOS에서만)
 ## 🏆 프로젝트 하이라이트
 
 ### ✨ 최근 업데이트 (v1.0.0)
+- 🔄 **Riverpod 상태 관리**: 현대적인 반응형 상태 관리 도입
+- 🧠 **AI Todo 생성**: Gemini AI를 활용한 스마트 할 일 추천
 - 🔔 **알림 시스템**: 로컬 푸시 알림 및 스케줄링 기능 추가
 - 🪟 **Windows 최적화**: Google 로그인 통합 및 시스템 트레이 개선
 - 📊 **통계 대시보드**: 작업 생산성 분석 및 카테고리별 진행률
@@ -291,6 +339,8 @@ flutter build ios --release                    # iOS (macOS에서만)
 
 ### 🎯 핵심 강점
 - **📱 크로스 플랫폼**: 하나의 코드베이스로 6개 플랫폼 지원
+- **🔄 혁신적 상태 관리**: Riverpod 기반 성능 최적화
+- **🧠 AI 통합**: Gemini AI로 스마트 할 일 생성 및 분류
 - **☁️ 실시간 동기화**: Firebase 기반 즉시 동기화
 - **🏗️ 확장 가능한 아키텍처**: SOLID 원칙 적용한 모듈형 설계
 - **🧪 높은 테스트 품질**: 의존성 주입으로 100% 테스트 가능
@@ -335,9 +385,6 @@ git push origin feature/새로운-기능
 - **🐛 버그 리포트**: GitHub Issues
 - **📖 문서**: 프로젝트 Wiki 참조
 
-## 📄 라이선스
-
-이 프로젝트는 **MIT 라이선스**를 따릅니다. 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
 
 ---
 
@@ -345,6 +392,6 @@ git push origin feature/새로운-기능
 
 **🌟 이 프로젝트가 도움이 되었다면 스타(⭐)를 눌러주세요! 🌟**
 
-Made with ❤️ using Flutter & Firebase
+Made with ❤️ using Flutter, Firebase & Riverpod
 
 </div>
