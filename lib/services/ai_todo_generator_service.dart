@@ -18,6 +18,7 @@
 import 'dart:convert';
 import 'dart:math';
 import '../model/todo_item.dart';
+import 'gemini_service.dart';
 
 class AiTodoGeneratorService {
   static final AiTodoGeneratorService _instance = AiTodoGeneratorService._internal();
@@ -26,26 +27,32 @@ class AiTodoGeneratorService {
 
   /// 추상적인 요청을 구체적인 할 일 목록으로 변환
   Future<List<TodoItem>> generateTodos(String abstractRequest) async {
-    // TODO: 실제 AI API 연동 (OpenAI, Gemini 등)
-    // 현재는 미리 정의된 템플릿으로 구현
+    final geminiService = GeminiService();
     
-    await Future.delayed(Duration(seconds: 1)); // API 호출 시뮬레이션
-    
-    final normalizedRequest = abstractRequest.toLowerCase().trim();
-    
-    // 카테고리별 템플릿 매칭 - 더 구체적인 키워드 우선
-    if (_isFinanceRelated(normalizedRequest)) {
-      return _generateFinanceTodos();
-    } else if (_isHealthRelated(normalizedRequest)) {
-      return _generateHealthTodos();
-    } else if (_isStudyRelated(normalizedRequest)) {
-      return _generateStudyTodos();
-    } else if (_isWorkRelated(normalizedRequest)) {
-      return _generateWorkTodos();
-    } else if (_isLifestyleRelated(normalizedRequest)) {
-      return _generateLifestyleTodos();
-    } else {
-      return _generateGeneralTodos(abstractRequest);
+    try {
+      // Gemini API를 사용하여 실제 AI 할 일 생성
+      return await geminiService.generateTodos(abstractRequest);
+    } catch (e) {
+      print('Gemini API 호출 실패, 템플릿 방식으로 폴백: $e');
+      
+      // 폴백: 기존 템플릿 방식 사용
+      await Future.delayed(Duration(seconds: 1));
+      
+      final normalizedRequest = abstractRequest.toLowerCase().trim();
+      
+      if (_isFinanceRelated(normalizedRequest)) {
+        return _generateFinanceTodos();
+      } else if (_isHealthRelated(normalizedRequest)) {
+        return _generateHealthTodos();
+      } else if (_isStudyRelated(normalizedRequest)) {
+        return _generateStudyTodos();
+      } else if (_isWorkRelated(normalizedRequest)) {
+        return _generateWorkTodos();
+      } else if (_isLifestyleRelated(normalizedRequest)) {
+        return _generateLifestyleTodos();
+      } else {
+        return _generateGeneralTodos(abstractRequest);
+      }
     }
   }
 
@@ -99,37 +106,37 @@ class AiTodoGeneratorService {
     final now = DateTime.now();
     final healthTodos = [
       TodoItem(
-        title: '매일 30분 이상 운동하기 (걷기, 조깅, 홈트레이닝 등)',
+        title: '매일 30분 운동하기',
         category: '건강',
         priority: 'Medium',
         dueDate: now.add(Duration(days: 1)),
       ),
       TodoItem(
-        title: '하루 2L 이상 물 마시기 (텀블러 준비하고 시간대별로)',
+        title: '하루 2L 물 마시기',
         category: '건강',
         priority: 'Medium',
         dueDate: now.add(Duration(days: 1)),
       ),
       TodoItem(
-        title: '규칙적인 수면 패턴 만들기 (같은 시간에 잠자리)',
+        title: '규칙적인 수면 패턴 만들기',
         category: '건강',
         priority: 'High',
         dueDate: now.add(Duration(days: 1)),
       ),
       TodoItem(
-        title: '금연/금주 실천하기 (점진적으로 줄이고 대체 활동)',
+        title: '금연/금주 실천하기',
         category: '건강',
         priority: 'High',
         dueDate: now.add(Duration(days: 7)),
       ),
       TodoItem(
-        title: '건강한 식단 계획하기 (주간 식단표 작성)',
+        title: '주간 식단표 작성하기',
         category: '건강',
         priority: 'Medium',
         dueDate: now.add(Duration(days: 3)),
       ),
       TodoItem(
-        title: '스트레칭 루틴 만들기 (아침/저녁 10분씩)',
+        title: '매일 스트레칭하기',
         category: '건강',
         priority: 'Low',
         dueDate: now.add(Duration(days: 2)),
@@ -146,37 +153,37 @@ class AiTodoGeneratorService {
     final now = DateTime.now();
     final studyTodos = [
       TodoItem(
-        title: '매일 1시간 집중 학습하기 (포모도로 기법 활용)',
+        title: '매일 1시간 집중 학습하기',
         category: '학습',
         priority: 'High',
         dueDate: now.add(Duration(days: 1)),
       ),
       TodoItem(
-        title: '온라인 강의 수강하기 (관심 분야 강의 찾기)',
+        title: '온라인 강의 수강하기',
         category: '학습',
         priority: 'Medium',
         dueDate: now.add(Duration(days: 3)),
       ),
       TodoItem(
-        title: '매주 책 1권 읽기 (독서 목록 작성하고 독후감)',
+        title: '매주 책 1권 읽기',
         category: '학습',
         priority: 'Medium',
         dueDate: now.add(Duration(days: 7)),
       ),
       TodoItem(
-        title: '영어 공부 30분씩 하기 (단어암기, 리스닝)',
+        title: '매일 영어 30분 공부하기',
         category: '학습',
         priority: 'Medium',
         dueDate: now.add(Duration(days: 1)),
       ),
       TodoItem(
-        title: '새로운 기술/도구 배우기 (업무 관련 스킬)',
+        title: '새로운 기술 배우기',
         category: '학습',
         priority: 'Low',
         dueDate: now.add(Duration(days: 14)),
       ),
       TodoItem(
-        title: '학습 노트 정리하기 (체계적으로 정리하고 복습)',
+        title: '학습 노트 정리하기',
         category: '학습',
         priority: 'Low',
         dueDate: now.add(Duration(days: 7)),
@@ -192,37 +199,37 @@ class AiTodoGeneratorService {
     final now = DateTime.now();
     final workTodos = [
       TodoItem(
-        title: '업무 우선순위 정리하기 (중요도와 긴급도 분류)',
+        title: '업무 우선순위 정리하기',
         category: '업무',
         priority: 'High',
         dueDate: now.add(Duration(days: 1)),
       ),
       TodoItem(
-        title: '프로젝트 진행상황 점검하기 (마일스톤 확인)',
+        title: '프로젝트 진행상황 점검하기',
         category: '업무',
         priority: 'High',
         dueDate: now.add(Duration(days: 2)),
       ),
       TodoItem(
-        title: '팀 미팅 준비하기 (안건 정리하고 자료 준비)',
+        title: '팀 미팅 준비하기',
         category: '업무',
         priority: 'Medium',
         dueDate: now.add(Duration(days: 3)),
       ),
       TodoItem(
-        title: '업무 자동화 방안 검토하기 (반복 작업 도구 찾기)',
+        title: '업무 자동화 방안 검토하기',
         category: '업무',
         priority: 'Low',
         dueDate: now.add(Duration(days: 7)),
       ),
       TodoItem(
-        title: '동료와 소통 시간 만들기 (협업 효율성 향상)',
+        title: '동료와 소통 시간 만들기',
         category: '업무',
         priority: 'Medium',
         dueDate: now.add(Duration(days: 2)),
       ),
       TodoItem(
-        title: '업무 역량 강화 계획 세우기 (스킬 파악하고 학습)',
+        title: '업무 역량 강화 계획 세우기',
         category: '업무',
         priority: 'Low',
         dueDate: now.add(Duration(days: 14)),
@@ -238,37 +245,37 @@ class AiTodoGeneratorService {
     final now = DateTime.now();
     final lifestyleTodos = [
       TodoItem(
-        title: '집 정리정돈하기 (불필요한 물건 정리하고 공간 최적화)',
+        title: '집 정리정돈하기',
         category: '생활',
         priority: 'Medium',
         dueDate: now.add(Duration(days: 3)),
       ),
       TodoItem(
-        title: '새로운 요리 도전하기 (매주 새로운 레시피)',
+        title: '새로운 요리 도전하기',
         category: '생활',
         priority: 'Low',
         dueDate: now.add(Duration(days: 7)),
       ),
       TodoItem(
-        title: '가족/친구와 소통 시간 늘리기 (정기적인 만남)',
+        title: '가족/친구와 소통 시간 늘리기',
         category: '생활',
         priority: 'Medium',
         dueDate: now.add(Duration(days: 2)),
       ),
       TodoItem(
-        title: '취미 활동 시간 확보하기 (스트레스 해소 위한 여가)',
+        title: '취미 활동 시간 확보하기',
         category: '생활',
         priority: 'Low',
         dueDate: now.add(Duration(days: 7)),
       ),
       TodoItem(
-        title: '디지털 디톡스 실천하기 (스마트폰 사용 시간 줄이기)',
+        title: '디지털 디톡스 실천하기',
         category: '생활',
         priority: 'Medium',
         dueDate: now.add(Duration(days: 1)),
       ),
       TodoItem(
-        title: '자기 계발 시간 만들기 (명상, 일기쓰기, 성찰)',
+        title: '자기 계발 시간 만들기',
         category: '생활',
         priority: 'Low',
         dueDate: now.add(Duration(days: 7)),
@@ -284,37 +291,37 @@ class AiTodoGeneratorService {
     final now = DateTime.now();
     final financeTodos = [
       TodoItem(
-        title: '가계부 작성하기 (수입과 지출 내역 상세히 기록)',
+        title: '가계부 작성하기',
         category: '재정',
         priority: 'High',
         dueDate: now.add(Duration(days: 1)),
       ),
       TodoItem(
-        title: '월 예산 계획 세우기 (필수/선택 지출 구분)',
+        title: '월 예산 계획 세우기',
         category: '재정',
         priority: 'High',
         dueDate: now.add(Duration(days: 3)),
       ),
       TodoItem(
-        title: '비상금 마련하기 (월 소득3-6개월치 목표)',
+        title: '비상금 마련하기',
         category: '재정',
         priority: 'Medium',
         dueDate: now.add(Duration(days: 7)),
       ),
       TodoItem(
-        title: '투자 공부하고 시작하기 (안전한 상품부터)',
+        title: '투자 공부하고 시작하기',
         category: '재정',
         priority: 'Low',
         dueDate: now.add(Duration(days: 30)),
       ),
       TodoItem(
-        title: '불필요한 구독 서비스 정리하기 (멤버십 해지)',
+        title: '불필요한 구독 서비스 정리하기',
         category: '재정',
         priority: 'Medium',
         dueDate: now.add(Duration(days: 2)),
       ),
       TodoItem(
-        title: '재정 목표 설정하기 (단기/중기/장기 계획)',
+        title: '재정 목표 설정하기',
         category: '재정',
         priority: 'Medium',
         dueDate: now.add(Duration(days: 7)),
@@ -330,31 +337,31 @@ class AiTodoGeneratorService {
     final now = DateTime.now();
     final generalTodos = [
       TodoItem(
-        title: '$request 관련 정보 조사하기 (온라인 검색, 전문가 의견)',
+        title: '$request 관련 정보 조사하기',
         category: '일반',
         priority: 'Medium',
         dueDate: now.add(Duration(days: 2)),
       ),
       TodoItem(
-        title: '$request 계획 세우기 (구체적인 실행 계획과 일정)',
+        title: '$request 계획 세우기',
         category: '일반',
         priority: 'High',
         dueDate: now.add(Duration(days: 3)),
       ),
       TodoItem(
-        title: '$request 첫 번째 단계 실행하기 (작은 것부터 시작)',
+        title: '$request 첫 번째 단계 실행하기',
         category: '일반',
         priority: 'High',
         dueDate: now.add(Duration(days: 5)),
       ),
       TodoItem(
-        title: '$request 관련 도구/자료 준비하기 (필요한 준비물 확보)',
+        title: '$request 관련 도구/자료 준비하기',
         category: '일반',
         priority: 'Medium',
         dueDate: now.add(Duration(days: 4)),
       ),
       TodoItem(
-        title: '$request 진행상황 점검하기 (정기적 목표 달성도 확인)',
+        title: '$request 진행상황 점검하기',
         category: '일반',
         priority: 'Low',
         dueDate: now.add(Duration(days: 7)),
