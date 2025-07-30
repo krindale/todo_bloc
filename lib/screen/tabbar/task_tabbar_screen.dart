@@ -4,9 +4,10 @@
 /// Material Design의 TabBar를 활용하여 직관적인 네비게이션을 제공합니다.
 /// 
 /// **탭 구성:**
-/// - **할 일**: TodoScreen - 할 일 추가/관리
-/// - **통계**: TaskSummaryScreen - 생산성 분석
-/// - **링크**: SavedLinksScreen - 북마크 관리
+/// - **Tasks**: TodoScreen - 할 일 추가/관리
+/// - **AI Generator**: AiTodoGeneratorScreen - AI 할 일 생성
+/// - **Summary**: TaskSummaryScreen - 생산성 분석  
+/// - **Links**: SavedLinksScreen - 북마크 관리
 /// 
 /// **주요 기능:**
 /// - 탭 간 상태 유지 (AutomaticKeepAliveClientMixin)
@@ -15,7 +16,7 @@
 /// - 반응형 레이아웃 (모바일/데스크톱)
 /// 
 /// **네비게이션 패턴:**
-/// - DefaultTabController: 탭 상태 관리
+/// - TabController: 탭 상태 관리 및 프로그래밍 방식 전환
 /// - 각 탭의 독립적인 상태 관리
 /// - 앱바 통합 (제목, 액션 버튼)
 /// 
@@ -30,75 +31,94 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../todo_screen.dart';
 import '../task_summary_screen.dart';
 import '../saved_links_screen.dart';
-import '../../util/todo_database.dart';
-import '../../services/saved_link_repository.dart';
+import '../ai_todo_generator_screen.dart';
 import '../../services/user_session_service.dart';
 
-class TaskTabbarScreen extends StatelessWidget {
+class TaskTabbarScreen extends StatefulWidget {
   const TaskTabbarScreen({super.key});
   
   @override
+  State<TaskTabbarScreen> createState() => _TaskTabbarScreenState();
+}
+
+class _TaskTabbarScreenState extends State<TaskTabbarScreen> with TickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 4, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+  
+  @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text('Task Manager'),
-          automaticallyImplyLeading: false, // 백버튼 제거
-          actions: [
-            PopupMenuButton<String>(
-              onSelected: (value) async {
-                if (value == 'logout') {
-                  try {
-                    // 사용자 세션 서비스를 통한 로그아웃 처리
-                    await UserSessionService.instance.onUserLogout();
-                    
-                    // Firebase 로그아웃
-                    await FirebaseAuth.instance.signOut();
-                    
-                    if (context.mounted) {
-                      Navigator.pushReplacementNamed(context, '/login');
-                    }
-                  } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('로그아웃 중 오류가 발생했습니다: $e')),
-                      );
-                    }
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Task Manager'),
+        automaticallyImplyLeading: false, // 백버튼 제거
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) async {
+              if (value == 'logout') {
+                try {
+                  // 사용자 세션 서비스를 통한 로그아웃 처리
+                  await UserSessionService.instance.onUserLogout();
+                  
+                  // Firebase 로그아웃
+                  await FirebaseAuth.instance.signOut();
+                  
+                  if (context.mounted) {
+                    Navigator.pushReplacementNamed(context, '/login');
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('로그아웃 중 오류가 발생했습니다: $e')),
+                    );
                   }
                 }
-              },
-              itemBuilder: (BuildContext context) {
-                return [
-                  PopupMenuItem<String>(
-                    value: 'logout',
-                    child: Row(
-                      children: [
-                        Icon(Icons.logout),
-                        SizedBox(width: 8),
-                        Text('로그아웃'),
-                      ],
-                    ),
+              }
+            },
+            itemBuilder: (BuildContext context) {
+              return [
+                PopupMenuItem<String>(
+                  value: 'logout',
+                  child: Row(
+                    children: [
+                      Icon(Icons.logout),
+                      SizedBox(width: 8),
+                      Text('로그아웃'),
+                    ],
                   ),
-                ];
-              },
-            ),
-          ],
-          bottom: TabBar(
-            tabs: [
-              Tab(text: 'Task List'),
-              Tab(text: 'Task Summary'),
-              Tab(text: 'Saved Links'), // 새 탭 추가
-            ],
+                ),
+              ];
+            },
           ),
-        ),
-        body: TabBarView(
-          children: [
-            TodoScreen.withDefaults(),
-            TaskSummaryScreen(),
-            SavedLinksScreen(),
+        ],
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: [
+            Tab(text: 'Tasks'),
+            Tab(text: 'AI Generator'),
+            Tab(text: 'Summary'),
+            Tab(text: 'Links'),
           ],
         ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          TodoScreen.withDefaults(),      // Tasks 탭
+          AiTodoGeneratorScreen(tabController: _tabController),        // AI Generator 탭
+          TaskSummaryScreen(),            // Summary 탭  
+          SavedLinksScreen(),             // Links 탭
+        ],
       ),
     );
   }
