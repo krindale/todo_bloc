@@ -11,7 +11,6 @@ import 'firebase_sync_service_duplicate_test.mocks.dart';
 
 @GenerateMocks([
   FirebaseFirestore,
-  CollectionReference,
   Query,
   QuerySnapshot,
   QueryDocumentSnapshot,
@@ -19,13 +18,15 @@ import 'firebase_sync_service_duplicate_test.mocks.dart';
   WriteBatch,
   FirebaseAuth,
   User,
+], customMocks: [
+  MockSpec<CollectionReference<Map<String, dynamic>>>(as: #MockCollectionReference),
 ])
 void main() {
   group('Firebase Duplicate Data Cleanup Tests', () {
     late MockFirebaseFirestore mockFirestore;
     late MockFirebaseAuth mockAuth;
     late MockUser mockUser;
-    late MockCollectionReference mockCollection;
+    late MockCollectionReference<Map<String, dynamic>> mockCollection;
     late MockQuery mockQuery;
     late MockQuerySnapshot mockSnapshot;
     late MockWriteBatch mockBatch;
@@ -35,7 +36,7 @@ void main() {
       mockFirestore = MockFirebaseFirestore();
       mockAuth = MockFirebaseAuth();
       mockUser = MockUser();
-      mockCollection = MockCollectionReference();
+      mockCollection = MockCollectionReference<Map<String, dynamic>>();
       mockQuery = MockQuery();
       mockSnapshot = MockQuerySnapshot();
       mockBatch = MockWriteBatch();

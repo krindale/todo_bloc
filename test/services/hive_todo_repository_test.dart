@@ -27,9 +27,8 @@ void main() {
       
       testTodo = TodoItem(
         title: 'Test Todo',
-        content: 'Test Content',
         dueDate: DateTime.now(),
-        priority: Priority.medium,
+        priority: 'Medium',
         firebaseDocId: 'test-doc-id',
       );
       
@@ -37,9 +36,8 @@ void main() {
         testTodo,
         TodoItem(
           title: 'Test Todo 2',
-          content: 'Test Content 2',
           dueDate: DateTime.now().add(Duration(days: 1)),
-          priority: Priority.high,
+          priority: 'High',
           firebaseDocId: 'test-doc-id-2',
         ),
       ];

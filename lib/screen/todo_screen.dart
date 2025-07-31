@@ -195,8 +195,8 @@ class _TodoScreenState extends State<TodoScreen> {
     // 알림 서비스 초기화
     _notificationService.initialize();
     
-    // 모바일 플랫폼에서만 초기 로드 (Firebase 전용은 스트림 사용)
-    if (!_shouldUseFirebaseOnly) {
+    // 모바일 플랫폼이거나 Firebase 전용이지만 로그인하지 않은 경우 초기 로드
+    if (!_shouldUseFirebaseOnly || !_firebaseService.isUserSignedIn) {
       _loadTodos();
     }
   }
@@ -233,7 +233,8 @@ class _TodoScreenState extends State<TodoScreen> {
     try {
       await _todoRepository.addTodo(newTodo);
       debugPrint('Todo added successfully');
-      if (!_shouldUseFirebaseOnly) {
+      // Firebase 전용 플랫폼이지만 로그인하지 않은 경우에도 로컬 데이터 새로고침
+      if (!_shouldUseFirebaseOnly || !_firebaseService.isUserSignedIn) {
         _loadTodos();
       }
     } catch (e) {
@@ -261,12 +262,15 @@ class _TodoScreenState extends State<TodoScreen> {
   // ✅ 할 일 업데이트 (로컬 DB용) - deprecated 메서드 사용
   void _updateTodo(int index, TodoItem updatedTodo) async {
     await _todoRepository.updateTodoByIndex(index, updatedTodo);
-    _loadTodos();
+    // Firebase 전용 플랫폼이지만 로그인하지 않은 경우에도 로컬 데이터 새로고침
+    if (!_shouldUseFirebaseOnly || !_firebaseService.isUserSignedIn) {
+      _loadTodos();
+    }
   }
 
   // ✅ 할 일 삭제
   void _deleteTodo(int index, [List<TodoItem>? tasks]) async {
-    if (_shouldUseFirebaseOnly) {
+    if (_shouldUseFirebaseOnly && _firebaseService.isUserSignedIn) {
       // Firebase-only 플랫폼에서는 TodoItem으로 삭제
       final taskList = tasks ?? _tasks;
       if (index < taskList.length) {
@@ -324,7 +328,7 @@ class _TodoScreenState extends State<TodoScreen> {
         }
       } else {
         // 기존 할 일 수정 - 제목이 변경되면 다시 분류
-        if (_shouldUseFirebaseOnly && _editingTodo != null) {
+        if (_shouldUseFirebaseOnly && _firebaseService.isUserSignedIn && _editingTodo != null) {
           // Firebase-only 모드
           var updatedTodo = TodoItem(
             title: _taskController.text,
@@ -366,7 +370,7 @@ class _TodoScreenState extends State<TodoScreen> {
           // Firebase 업데이트 (비동기로 실행하지만 await하지 않음)
           _updateTodoFirebase(originalTodo, categorizedTodo);
           return;
-        } else if (!_shouldUseFirebaseOnly && _editingIndex != null) {
+        } else if ((!_shouldUseFirebaseOnly || !_firebaseService.isUserSignedIn) && _editingIndex != null) {
           // 로컬 DB 모드
           final originalTodo = _tasks[_editingIndex!];
           var updatedTodo = TodoItem(
@@ -499,7 +503,8 @@ class _TodoScreenState extends State<TodoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_shouldUseFirebaseOnly) {
+    // Firebase 전용 플랫폼이지만 사용자가 로그인하지 않은 경우 로컬 데이터 사용
+    if (_shouldUseFirebaseOnly && _firebaseService.isUserSignedIn) {
       return _buildWithFirebaseStream();
     } else {
       return _buildWithLocalData();
