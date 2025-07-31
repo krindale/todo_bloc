@@ -6,12 +6,15 @@ class AiGeneratorHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(LayoutConstants.defaultPadding),
-        child: Column(
-          children: [
+    return SizedBox(
+      width: double.infinity,
+      child: Card(
+        elevation: 2,
+        child: Padding(
+          padding: const EdgeInsets.all(LayoutConstants.defaultPadding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
             Icon(
               Icons.auto_awesome,
               size: 48,
@@ -32,7 +35,8 @@ class AiGeneratorHeader extends StatelessWidget {
                   ),
               textAlign: TextAlign.center,
             ),
-          ],
+            ],
+          ),
         ),
       ),
     );

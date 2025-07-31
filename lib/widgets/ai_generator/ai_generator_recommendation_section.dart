@@ -15,13 +15,15 @@ class AiGeneratorRecommendationSection extends StatelessWidget {
     final aiService = AiTodoGeneratorService();
     final recommendations = aiService.getSuggestedRequests();
 
-    return Card(
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.all(LayoutConstants.defaultPadding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    return SizedBox(
+      width: double.infinity,
+      child: Card(
+        elevation: 1,
+        child: Padding(
+          padding: const EdgeInsets.all(LayoutConstants.defaultPadding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
             Text(
               AppStrings.recommendationsTitle,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -29,10 +31,12 @@ class AiGeneratorRecommendationSection extends StatelessWidget {
                   ),
             ),
             const SizedBox(height: LayoutConstants.cardPadding),
-            Wrap(
-              spacing: LayoutConstants.smallSpacing,
-              runSpacing: LayoutConstants.smallSpacing,
-              children: recommendations.map((recommendation) {
+            SizedBox(
+              width: double.infinity,
+              child: Wrap(
+                spacing: LayoutConstants.smallSpacing,
+                runSpacing: LayoutConstants.smallSpacing,
+                children: recommendations.map((recommendation) {
                 return GestureDetector(
                   onTap: () {
                     print('🔥 GestureDetector 탭 감지: $recommendation');
@@ -58,9 +62,11 @@ class AiGeneratorRecommendationSection extends StatelessWidget {
                     ),
                   ),
                 );
-              }).toList(),
+                }).toList(),
+              ),
             ),
-          ],
+            ],
+          ),
         ),
       ),
     );
