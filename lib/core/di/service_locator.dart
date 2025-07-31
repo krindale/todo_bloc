@@ -9,11 +9,12 @@ import '../platform/platform_strategy.dart';
 import '../utils/app_logger.dart';
 import '../utils/error_handler.dart';
 
-// 클린 아키텍처 임포트 (추후 활성화)
-/*
+// 클린 아키텍처 임포트
 // Data layer
 import '../../data/datasources/todo_local_datasource.dart';
 import '../../data/datasources/todo_remote_datasource.dart';
+import '../../data/datasources/todo_hive_datasource.dart';
+import '../../data/datasources/todo_firebase_datasource.dart';
 import '../../data/repositories/todo_repository_impl.dart';
 
 // Domain layer
@@ -23,7 +24,6 @@ import '../../domain/usecases/get_todos_usecase.dart';
 import '../../domain/usecases/update_todo_usecase.dart';
 import '../../domain/usecases/delete_todo_usecase.dart';
 import '../../domain/usecases/toggle_todo_completion_usecase.dart';
-*/
 
 /// **서비스 등록 타입**
 enum ServiceType {
@@ -181,13 +181,15 @@ class ServiceLocator {
     // 클린 아키텍처 - 데이터 소스 등록
     // ==========================================================================
     
-    // TODO: 실제 데이터 소스 구현 후 활성화
-    /*
     // 로컬 데이터 소스
-    registerLazySingleton<TodoLocalDataSource>(() => TodoHiveDataSource());
+    final hiveDataSource = TodoHiveDataSource();
+    await hiveDataSource.initialize();
+    registerLazySingleton<TodoLocalDataSource>(() => hiveDataSource);
     
     // 원격 데이터 소스  
-    registerLazySingleton<TodoRemoteDataSource>(() => TodoFirebaseDataSource());
+    final firebaseDataSource = TodoFirebaseDataSource();
+    await firebaseDataSource.initialize();
+    registerLazySingleton<TodoRemoteDataSource>(() => firebaseDataSource);
     
     // ==========================================================================
     // 클린 아키텍처 - 레포지토리 등록
@@ -208,7 +210,6 @@ class ServiceLocator {
     registerLazySingleton(() => UpdateTodoUseCase(get<TodoRepository>()));
     registerLazySingleton(() => DeleteTodoUseCase(get<TodoRepository>()));
     registerLazySingleton(() => ToggleTodoCompletionUseCase(get<TodoRepository>()));
-    */
     
     AppLogger.debug('Business services registration completed', tag: 'DI');
   }
