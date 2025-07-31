@@ -9,6 +9,22 @@ import '../platform/platform_strategy.dart';
 import '../utils/app_logger.dart';
 import '../utils/error_handler.dart';
 
+// 클린 아키텍처 임포트 (추후 활성화)
+/*
+// Data layer
+import '../../data/datasources/todo_local_datasource.dart';
+import '../../data/datasources/todo_remote_datasource.dart';
+import '../../data/repositories/todo_repository_impl.dart';
+
+// Domain layer
+import '../../domain/repositories/todo_repository.dart';
+import '../../domain/usecases/add_todo_usecase.dart';
+import '../../domain/usecases/get_todos_usecase.dart';
+import '../../domain/usecases/update_todo_usecase.dart';
+import '../../domain/usecases/delete_todo_usecase.dart';
+import '../../domain/usecases/toggle_todo_completion_usecase.dart';
+*/
+
 /// **서비스 등록 타입**
 enum ServiceType {
   singleton,  // 앱 생명주기 동안 하나의 인스턴스
@@ -161,34 +177,46 @@ class ServiceLocator {
   
   /// 비즈니스 서비스들 등록 (데이터, AI, 동기화 등)
   static Future<void> _registerBusinessServices() async {
-    final platformStrategy = get<PlatformStrategy>();
+    // ==========================================================================
+    // 클린 아키텍처 - 데이터 소스 등록
+    // ==========================================================================
     
-    // TODO: 실제 서비스들을 등록할 때 사용
+    // TODO: 실제 데이터 소스 구현 후 활성화
     /*
-    // Repository 등록
-    if (platformStrategy.canUseLocalDatabase()) {
-      registerLazySingleton<TodoRepository>(() => HiveTodoRepository(
-        platformStrategy: platformStrategy,
-      ));
-    } else {
-      registerLazySingleton<TodoRepository>(() => FirebaseTodoRepository());
-    }
+    // 로컬 데이터 소스
+    registerLazySingleton<TodoLocalDataSource>(() => TodoHiveDataSource());
     
-    // AI 서비스 등록
-    registerLazySingleton<AiTodoGeneratorService>(() => AiTodoGeneratorService());
+    // 원격 데이터 소스  
+    registerLazySingleton<TodoRemoteDataSource>(() => TodoFirebaseDataSource());
     
-    // 동기화 서비스 등록
-    if (platformStrategy.canSyncInBackground()) {
-      registerLazySingleton<SyncService>(() => FirebaseSyncService());
-    }
+    // ==========================================================================
+    // 클린 아키텍처 - 레포지토리 등록
+    // ==========================================================================
     
-    // 알림 서비스 등록
-    if (platformStrategy.canShowNotifications()) {
-      registerLazySingleton<NotificationService>(() => LocalNotificationService());
-    }
+    registerLazySingleton<TodoRepository>(() => TodoRepositoryImpl(
+      localDataSource: get<TodoLocalDataSource>(),
+      remoteDataSource: get<TodoRemoteDataSource>(),
+      useRemoteDataSource: _shouldUseRemoteDataSource(),
+    ));
+    
+    // ==========================================================================
+    // 클린 아키텍처 - Use Cases 등록
+    // ==========================================================================
+    
+    registerLazySingleton(() => AddTodoUseCase(get<TodoRepository>()));
+    registerLazySingleton(() => GetTodosUseCase(get<TodoRepository>()));
+    registerLazySingleton(() => UpdateTodoUseCase(get<TodoRepository>()));
+    registerLazySingleton(() => DeleteTodoUseCase(get<TodoRepository>()));
+    registerLazySingleton(() => ToggleTodoCompletionUseCase(get<TodoRepository>()));
     */
     
     AppLogger.debug('Business services registration completed', tag: 'DI');
+  }
+  
+  /// 플랫폼별 원격 데이터 소스 사용 여부 결정
+  static bool _shouldUseRemoteDataSource() {
+    // 현재 플랫폼과 네트워크 상태에 따라 결정
+    return true;
   }
   
   /// UI 서비스들 등록 (네비게이션, 테마 등)  
