@@ -167,6 +167,25 @@ class TodoEntity extends Equatable {
     return now.isAfter(alarmTime!) && !isCompleted;
   }
 
+  /// 남은 일수 계산
+  int get remainingDays {
+    if (isCompleted) return 0;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final dueDay = DateTime(dueDate.year, dueDate.month, dueDate.day);
+    return dueDay.difference(today).inDays;
+  }
+
+  /// 유효성 검증
+  bool get isValid {
+    return title.trim().isNotEmpty;
+  }
+
+  /// 높은 우선순위인지 확인
+  bool get isHighPriority {
+    return priority == TodoPriority.high;
+  }
+
   /// 복사본 생성 (불변성 보장)
   TodoEntity copyWith({
     String? id,
