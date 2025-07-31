@@ -13,8 +13,8 @@ import '../utils/error_handler.dart';
 // Data layer
 import '../../data/datasources/todo_local_datasource.dart';
 import '../../data/datasources/todo_remote_datasource.dart';
-import '../../data/datasources/todo_hive_datasource.dart';
-import '../../data/datasources/todo_firebase_datasource.dart';
+import '../../data/datasources/todo_hive_datasource.dart' as hive;
+import '../../data/datasources/todo_firebase_datasource.dart' as firebase;
 import '../../data/repositories/todo_repository_impl.dart';
 
 // Domain layer
@@ -182,12 +182,12 @@ class ServiceLocator {
     // ==========================================================================
     
     // 로컬 데이터 소스
-    final hiveDataSource = TodoHiveDataSource();
+    final hiveDataSource = hive.TodoHiveDataSource();
     await hiveDataSource.initialize();
     registerLazySingleton<TodoLocalDataSource>(() => hiveDataSource);
     
     // 원격 데이터 소스  
-    final firebaseDataSource = TodoFirebaseDataSource();
+    final firebaseDataSource = firebase.TodoFirebaseDataSource();
     await firebaseDataSource.initialize();
     registerLazySingleton<TodoRemoteDataSource>(() => firebaseDataSource);
     

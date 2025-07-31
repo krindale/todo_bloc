@@ -214,6 +214,90 @@ class TodoHiveDataSource implements TodoLocalDataSource {
   }
 
   @override
+  Future<void> deleteTodos(List<String> ids) async {
+    try {
+      await _ensureInitialized();
+      for (final id in ids) {
+        if (_box!.containsKey(id)) {
+          await _box!.delete(id);
+        }
+      }
+      AppLogger.info('Deleted ${ids.length} todos from Hive', tag: 'DataSource');
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'Failed to delete multiple todos from Hive',
+        tag: 'DataSource',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> deleteCompletedTodos() async {
+    try {
+      await _ensureInitialized();
+      final completedIds = _box!.values
+          .where((todo) => todo.isCompleted)
+          .map((todo) => todo.id)
+          .toList();
+      
+      for (final id in completedIds) {
+        await _box!.delete(id);
+      }
+      
+      AppLogger.info('Deleted ${completedIds.length} completed todos from Hive', tag: 'DataSource');
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'Failed to delete completed todos from Hive',
+        tag: 'DataSource',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<TodoModel>> searchTodos(String query) async {
+    try {
+      await _ensureInitialized();
+      final todos = _box!.values
+          .where((todo) => 
+              todo.title.toLowerCase().contains(query.toLowerCase()) ||
+              todo.description.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+      
+      AppLogger.debug('Found ${todos.length} todos matching query: $query from Hive', tag: 'DataSource');
+      return todos;
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'Failed to search todos in Hive with query: $query',
+        tag: 'DataSource',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return [];
+    }
+  }
+
+  @override
+  Stream<List<TodoModel>>? getTodosStream() {
+    try {
+      return watchAllTodos();
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'Failed to get todos stream from Hive',
+        tag: 'DataSource',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
+  }
+
+  @override
   Future<void> dispose() async {
     try {
       if (_box != null && _box!.isOpen) {
