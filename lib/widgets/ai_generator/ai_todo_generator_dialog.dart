@@ -11,7 +11,12 @@ import 'ai_generator_input.dart';
 import 'ai_generator_todo_list_dialog.dart';
 
 class AiTodoGeneratorDialog extends ConsumerStatefulWidget {
-  const AiTodoGeneratorDialog({super.key});
+  final VoidCallback? onTodosAdded;
+  
+  const AiTodoGeneratorDialog({
+    super.key,
+    this.onTodosAdded,
+  });
 
   @override
   ConsumerState<AiTodoGeneratorDialog> createState() => _AiTodoGeneratorDialogState();
@@ -152,7 +157,10 @@ class _AiTodoGeneratorDialogState extends ConsumerState<AiTodoGeneratorDialog> {
       return _buildEmptyState();
     }
     
-    return AiGeneratorTodoList(todos: generatedTodos);
+    return AiGeneratorTodoList(
+      todos: generatedTodos,
+      onTodosAdded: widget.onTodosAdded,
+    );
   }
 
   /// 로딩 상태 표시

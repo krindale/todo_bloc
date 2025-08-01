@@ -100,6 +100,9 @@ class TodoScreen extends StatefulWidget {
   /// - **TaskCategorizationService**: 자동 카테고리 분류
   /// - **FirebaseSyncService**: 클라우드 동기화
   /// 
+  /// Parameters:
+  ///   [key] - 위젯 키 (선택적)
+  /// 
   /// Returns:
   ///   기본 서비스들로 구성된 TodoScreen 인스턴스
   /// 
@@ -109,9 +112,14 @@ class TodoScreen extends StatefulWidget {
   /// Widget build(BuildContext context) {
   ///   return TodoScreen.withDefaults();
   /// }
+  /// 
+  /// // GlobalKey와 함께 사용
+  /// final key = GlobalKey<_TodoScreenState>();
+  /// return TodoScreen.withDefaults(key: key);
   /// ```
-  factory TodoScreen.withDefaults() {
+  factory TodoScreen.withDefaults({Key? key}) {
     return TodoScreen(
+      key: key,
       todoRepository: HiveTodoRepository(),
       categorizationService: TaskCategorizationService(),
       firebaseSyncService: FirebaseSyncService(),
@@ -119,14 +127,14 @@ class TodoScreen extends StatefulWidget {
   }
 
   @override
-  _TodoScreenState createState() => _TodoScreenState();
+  TodoScreenState createState() => TodoScreenState();
 }
 
 /// TodoScreen의 상태를 관리하는 클래스
 /// 
 /// UI 상태와 비즈니스 로직을 분리하여 관리합니다.
 /// 플랫폼별 동작을 지원하고 편집 모드를 처리합니다.
-class _TodoScreenState extends State<TodoScreen> {
+class TodoScreenState extends State<TodoScreen> {
   // ==================== UI 상태 관리 ====================
   
   /// 할 일 입력 텍스트 컨트롤러
@@ -215,6 +223,17 @@ class _TodoScreenState extends State<TodoScreen> {
     setState(() {
       _tasks = data;
     });
+  }
+
+  /// 외부에서 호출 가능한 Todo 목록 새로고침 메서드
+  /// 
+  /// AI 생성기 등 외부 위젯에서 새로운 할 일을 추가한 후
+  /// TodoScreen의 UI를 업데이트하기 위해 사용됩니다.
+  void refreshTodos() {
+    if (!_shouldUseFirebaseOnly || !_firebaseService.isUserSignedIn) {
+      _loadTodos();
+    }
+    // Firebase 스트림 모드에서는 자동으로 업데이트되므로 별도 처리 불필요
   }
 
   /// 새로운 할 일을 추가합니다.

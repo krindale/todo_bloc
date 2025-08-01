@@ -25,6 +25,7 @@ class MainTabScreen extends ConsumerStatefulWidget {
 class _MainTabScreenState extends ConsumerState<MainTabScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final GlobalKey<_TodoScreenWrapperState> _todoScreenKey = GlobalKey<_TodoScreenWrapperState>();
 
   @override
   void initState() {
@@ -54,7 +55,12 @@ class _MainTabScreenState extends ConsumerState<MainTabScreen>
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (context) => const AiTodoGeneratorDialog(),
+      builder: (context) => AiTodoGeneratorDialog(
+        onTodosAdded: () {
+          // AI로 생성된 할 일이 추가되면 TodoScreen 새로고침
+          _todoScreenKey.currentState?.refreshTodos();
+        },
+      ),
     );
   }
 
@@ -124,11 +130,11 @@ class _MainTabScreenState extends ConsumerState<MainTabScreen>
   Widget _buildTabBarView() {
     return TabBarView(
       controller: _tabController,
-      children: const [
-        TaskTabView(),
-        CalendarScreen(),
-        TaskSummaryScreen(),
-        SavedLinkScreen(),
+      children: [
+        TodoScreenWrapper(key: _todoScreenKey),
+        const CalendarScreen(),
+        const TaskSummaryScreen(),
+        const SavedLinkScreen(),
       ],
     );
   }
@@ -157,12 +163,25 @@ class _MainTabScreenState extends ConsumerState<MainTabScreen>
   }
 }
 
-/// Task 탭 내용
-class TaskTabView extends StatelessWidget {
-  const TaskTabView({super.key});
+/// TodoScreen을 감싸는 Wrapper 클래스
+/// GlobalKey를 통해 TodoScreen의 메서드에 접근할 수 있도록 합니다.
+class TodoScreenWrapper extends StatefulWidget {
+  const TodoScreenWrapper({super.key});
+
+  @override
+  State<TodoScreenWrapper> createState() => _TodoScreenWrapperState();
+}
+
+class _TodoScreenWrapperState extends State<TodoScreenWrapper> {
+  final GlobalKey<TodoScreenState> _todoScreenKey = GlobalKey<TodoScreenState>();
+
+  /// AI에서 할 일이 추가되었을 때 호출되는 새로고침 메서드
+  void refreshTodos() {
+    _todoScreenKey.currentState?.refreshTodos();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return TodoScreen.withDefaults();
+    return TodoScreen.withDefaults(key: _todoScreenKey);
   }
 }

@@ -12,10 +12,12 @@ import '../../model/todo_item.dart';
 
 class AiGeneratorTodoList extends ConsumerStatefulWidget {
   final List<String> todos;
+  final VoidCallback? onTodosAdded;
 
   const AiGeneratorTodoList({
     super.key,
     required this.todos,
+    this.onTodosAdded,
   });
 
   @override
@@ -88,6 +90,13 @@ class _AiGeneratorTodoListState extends ConsumerState<AiGeneratorTodoList> {
             backgroundColor: Colors.green,
           ),
         );
+        
+        // TodoScreen에 데이터 새로고침 신호 보내기
+        // 부모 위젯에 콜백이 있다면 호출
+        if (widget.onTodosAdded != null) {
+          widget.onTodosAdded!();
+        }
+        
         Navigator.of(context).pop();
       }
     } catch (e, stackTrace) {
