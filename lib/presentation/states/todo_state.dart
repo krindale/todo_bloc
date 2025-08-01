@@ -4,6 +4,7 @@
 
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/todo_entity.dart';
+import '../../domain/usecases/get_todos_usecase.dart';
 
 /// Todo UI 상태
 enum TodoUIState {

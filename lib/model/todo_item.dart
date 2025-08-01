@@ -118,4 +118,9 @@ class TodoItem extends HiveObject {
     }
     dueDate = newDueDate;
   }
+
+  @override
+  String toString() {
+    return title;
+  }
 }

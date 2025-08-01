@@ -9,8 +9,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 // Data layer
 import '../../data/datasources/todo_local_datasource.dart';
 import '../../data/datasources/todo_remote_datasource.dart';
-import '../../data/datasources/todo_hive_datasource.dart';
-import '../../data/datasources/todo_firebase_datasource.dart';
+import '../../data/datasources/todo_hive_datasource.dart' as hive;
+import '../../data/datasources/todo_firebase_datasource.dart' as firebase;
 import '../../data/repositories/todo_repository_impl.dart';
 
 // Domain layer
@@ -30,7 +30,7 @@ part 'dependency_injection_provider.g.dart';
 /// 로컬 데이터 소스 Provider
 @riverpod
 TodoLocalDataSource todoLocalDataSource(TodoLocalDataSourceRef ref) {
-  final dataSource = TodoHiveDataSource();
+  final dataSource = hive.TodoHiveDataSource();
   // 초기화는 별도 provider에서 처리하거나 앱 시작시 처리
   return dataSource;
 }
@@ -38,7 +38,7 @@ TodoLocalDataSource todoLocalDataSource(TodoLocalDataSourceRef ref) {
 /// 원격 데이터 소스 Provider
 @riverpod
 TodoRemoteDataSource todoRemoteDataSource(TodoRemoteDataSourceRef ref) {
-  final dataSource = TodoFirebaseDataSource();
+  final dataSource = firebase.TodoFirebaseDataSource();
   // 초기화는 별도 provider에서 처리하거나 앱 시작시 처리
   return dataSource;
 }

@@ -21,10 +21,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:window_manager/window_manager.dart';
-import 'screen/tabbar/task_tabbar_screen.dart';
+import 'screen/main_tab_screen.dart';
 import 'screen/login/login_screen.dart';
 import 'screen/login/signup_screen.dart';
 import 'services/user_session_service.dart';
@@ -34,6 +36,10 @@ import 'services/web_notification_helper.dart' if (dart.library.io) 'services/we
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize date formatting for locale support
+  await initializeDateFormatting('ko_KR', null);
+  await initializeDateFormatting('en_US', null);
 
   // SRP 적용: 초기화 서비스로 분리
   final initFacade = AppInitializationFacade.create();
@@ -54,7 +60,11 @@ void main() async {
     // 중요한 초기화가 실패하면 앱을 종료하거나 에러 화면을 표시
   }
   
-  runApp(const MyApp());
+  runApp(
+    const ProviderScope(
+      child: MyApp(),
+    ),
+  );
 }
 
 /// 웹 알림 초기화 및 권한 요청
@@ -228,14 +238,14 @@ class _MyAppState extends State<MyApp> with WindowListener {
             );
           } else {
             // Firebase 초기화 실패 시 바로 TODO 화면으로
-            return const TaskTabbarScreen();
+            return const MainTabScreen();
           }
         },
       ),
       routes: {
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignupScreen(),
-        '/home': (context) => const TaskTabbarScreen(),
+        '/home': (context) => const MainTabScreen(),
       },
     );
   }
@@ -304,6 +314,6 @@ class _AuthenticatedAppState extends State<AuthenticatedApp> {
       );
     }
 
-    return const TaskTabbarScreen();
+    return const MainTabScreen();
   }
 }

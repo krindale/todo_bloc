@@ -408,6 +408,110 @@ class TodoFirebaseDataSource implements TodoRemoteDataSource {
   }
 
   @override
+  Future<void> deleteTodos(List<String> ids) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw Exception('User not authenticated');
+      }
+
+      final batch = _firestore.batch();
+      
+      for (final id in ids) {
+        final docRef = _firestore.collection(_collectionName).doc(id);
+        // 문서가 현재 사용자의 것인지 확인한 후 삭제
+        final doc = await docRef.get();
+        if (doc.exists && doc.data()?['userId'] == user.uid) {
+          batch.delete(docRef);
+        }
+      }
+      
+      await batch.commit();
+      AppLogger.info('Deleted ${ids.length} todos from Firebase', tag: 'DataSource');
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'Failed to delete multiple todos from Firebase',
+        tag: 'DataSource',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> deleteCompletedTodos() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw Exception('User not authenticated');
+      }
+
+      final querySnapshot = await _firestore
+          .collection(_collectionName)
+          .where('userId', isEqualTo: user.uid)
+          .where('isCompleted', isEqualTo: true)
+          .get();
+
+      final batch = _firestore.batch();
+      for (final doc in querySnapshot.docs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+
+      AppLogger.info('Deleted ${querySnapshot.docs.length} completed todos from Firebase', tag: 'DataSource');
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'Failed to delete completed todos from Firebase',
+        tag: 'DataSource',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<TodoModel>> searchTodos(String query) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        AppLogger.warning('User not authenticated, returning empty list', tag: 'DataSource');
+        return [];
+      }
+
+      // Firestore는 부분 텍스트 검색을 지원하지 않으므로 모든 todo를 가져와서 필터링
+      final querySnapshot = await _firestore
+          .collection(_collectionName)
+          .where('userId', isEqualTo: user.uid)
+          .get();
+
+      final todos = querySnapshot.docs
+          .map((doc) => TodoModel.fromJson({...doc.data(), 'id': doc.id}))
+          .where((todo) =>
+              todo.title.toLowerCase().contains(query.toLowerCase()) ||
+              todo.description.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+
+      AppLogger.debug('Found ${todos.length} todos matching query: $query from Firebase', tag: 'DataSource');
+      return todos;
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'Failed to search todos in Firebase with query: $query',
+        tag: 'DataSource',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return [];
+    }
+  }
+
+  @override
+  Stream<List<TodoModel>> getTodosStream() {
+    return watchAllTodos();
+  }
+
+  @override
   Future<void> dispose() async {
     try {
       // Firebase는 앱 수준에서 관리되므로 특별한 정리가 필요하지 않음

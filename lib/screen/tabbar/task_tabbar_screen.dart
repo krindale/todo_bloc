@@ -5,7 +5,7 @@
 /// 
 /// **탭 구성:**
 /// - **Tasks**: TodoScreen - 할 일 추가/관리
-/// - **AI Generator**: AiTodoGeneratorScreen - AI 할 일 생성
+/// - **AI Generator**: AI 할 일 생성 (현재 플로팅 버튼으로 이동)
 /// - **Summary**: TaskSummaryScreen - 생산성 분석  
 /// - **Links**: SavedLinksScreen - 북마크 관리
 /// 
@@ -31,7 +31,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../todo_screen.dart';
 import '../task_summary_screen.dart';
 import '../saved_links_screen.dart';
-import '../ai_todo_generator_screen.dart';
 import '../../services/user_session_service.dart';
 
 class TaskTabbarScreen extends StatefulWidget {
@@ -115,9 +114,40 @@ class _TaskTabbarScreenState extends State<TaskTabbarScreen> with TickerProvider
         controller: _tabController,
         children: [
           TodoScreen.withDefaults(),      // Tasks 탭
-          AiTodoGeneratorScreen(tabController: _tabController),        // AI Generator 탭
+          _buildAiGeneratorPlaceholder(), // AI Generator 탭 (플레이스홀더)
           TaskSummaryScreen(),            // Summary 탭  
           SavedLinksScreen(),             // Links 탭
+        ],
+      ),
+    );
+  }
+
+  /// AI Generator 플레이스홀더 위젯
+  Widget _buildAiGeneratorPlaceholder() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.auto_awesome,
+            size: 64,
+            color: Colors.grey,
+          ),
+          SizedBox(height: 16),
+          Text(
+            'AI 생성기',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'AI 생성기는 Tasks 탭의 플로팅 버튼으로 이동했습니다.',
+            style: TextStyle(color: Colors.grey),
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );

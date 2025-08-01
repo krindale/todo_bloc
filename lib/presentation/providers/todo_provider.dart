@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../domain/entities/todo_entity.dart';
+import '../../domain/repositories/todo_repository.dart';
 import '../../domain/usecases/add_todo_usecase.dart';
 import '../../domain/usecases/get_todos_usecase.dart';
 import '../../domain/usecases/update_todo_usecase.dart';
@@ -142,18 +143,18 @@ class SelectedTodo extends _$SelectedTodo {
 
 /// Todo 필터 Provider
 @riverpod
-class TodoFilter extends _$TodoFilter {
+class TodoFilterSettings extends _$TodoFilterSettings {
   @override
   GetTodosParams build() => const GetTodosParams();
 
   void setFilter({
-    TodoFilter? filter,
+    TodoFilter? filterType,
     TodoCategory? category,
     TodoSortBy? sortBy,
     SortOrder? sortOrder,
   }) {
     state = GetTodosParams(
-      filter: filter ?? state.filter,
+      filter: filterType ?? state.filter,
       category: category ?? state.category,
       sortBy: sortBy ?? state.sortBy,
       sortOrder: sortOrder ?? state.sortOrder,
