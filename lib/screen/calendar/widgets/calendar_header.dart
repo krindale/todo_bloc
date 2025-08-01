@@ -1,5 +1,5 @@
 /// **캘린더 헤더 위젯**
-/// 
+///
 /// 캘린더 상단의 월/년 표시 및 뷰 전환 버튼을 제공합니다.
 
 import 'package:flutter/material.dart';
@@ -10,12 +10,16 @@ class CalendarHeader extends StatelessWidget {
   final DateTime focusedDay;
   final CalendarFormat calendarFormat;
   final ValueChanged<CalendarFormat> onFormatChanged;
+  final VoidCallback? onPreviousPeriod;
+  final VoidCallback? onNextPeriod;
 
   const CalendarHeader({
     super.key,
     required this.focusedDay,
     required this.calendarFormat,
     required this.onFormatChanged,
+    this.onPreviousPeriod,
+    this.onNextPeriod,
   });
 
   @override
@@ -35,16 +39,39 @@ class CalendarHeader extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // 월/년 표시
-          Text(
-            _formatMonthYear(focusedDay),
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
+          // 이전/다음 기간 버튼과 월/년 표시
+          Row(
+            children: [
+              // 이전 기간 버튼
+              IconButton(
+                onPressed: onPreviousPeriod,
+                icon: Icon(
+                  Icons.chevron_left,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                tooltip: _getPreviousTooltip(),
+              ),
+              // 월/년 표시
+              Text(
+                _formatMonthYear(focusedDay),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              // 다음 기간 버튼
+              IconButton(
+                onPressed: onNextPeriod,
+                icon: Icon(
+                  Icons.chevron_right,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                tooltip: _getNextTooltip(),
+              ),
+            ],
           ),
-          
+
           // 뷰 전환 버튼
           _buildFormatButton(context),
         ],
@@ -136,5 +163,33 @@ class CalendarHeader extends StatelessWidget {
   /// 월/년 포맷팅 (로케일 초기화 오류 방지)
   String _formatMonthYear(DateTime date) {
     return DateFormatter.formatMonthYear(date);
+  }
+
+  /// 이전 버튼 툴팁 반환
+  String _getPreviousTooltip() {
+    switch (calendarFormat) {
+      case CalendarFormat.month:
+        return '이전 달';
+      case CalendarFormat.twoWeeks:
+        return '이전 2주';
+      case CalendarFormat.week:
+        return '이전 주';
+      default:
+        return '이전 기간';
+    }
+  }
+
+  /// 다음 버튼 툴팁 반환
+  String _getNextTooltip() {
+    switch (calendarFormat) {
+      case CalendarFormat.month:
+        return '다음 달';
+      case CalendarFormat.twoWeeks:
+        return '다음 2주';
+      case CalendarFormat.week:
+        return '다음 주';
+      default:
+        return '다음 기간';
+    }
   }
 }
