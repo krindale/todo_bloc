@@ -1,7 +1,7 @@
 import '../model/todo_item.dart';
 import '../util/todo_database.dart';
 import 'todo_repository.dart';
-import 'platform_strategy.dart';
+import '../core/platform/platform_strategy.dart';
 import 'firebase_sync_service.dart';
 
 /// Hive 로컬 데이터베이스를 기반으로 한 Todo Repository 구현체
@@ -130,6 +130,32 @@ class HiveTodoRepository implements TodoRepository {
     }
   }
 
+  /// 백그라운드에서 Firebase 업데이트 동기화 (비동기)
+  void _syncUpdateToFirebaseInBackground(TodoItem todo) async {
+    try {
+      final syncService = FirebaseSyncService();
+      if (todo.firebaseDocId != null) {
+        await syncService.updateTodoInFirestore(todo);
+      }
+    } catch (e) {
+      print('백그라운드 Firebase 업데이트 동기화 실패: $e');
+      // 실패해도 무시 (나중에 다시 동기화됨)
+    }
+  }
+
+  /// 백그라운드에서 Firebase 삭제 동기화 (비동기)
+  void _syncDeleteToFirebaseInBackground(TodoItem todo) async {
+    try {
+      final syncService = FirebaseSyncService();
+      if (todo.firebaseDocId != null) {
+        await syncService.deleteTodoFromFirestore(todo.firebaseDocId!);
+      }
+    } catch (e) {
+      print('백그라운드 Firebase 삭제 동기화 실패: $e');
+      // 실패해도 무시 (나중에 다시 동기화됨)
+    }
+  }
+
   /// Todo 항목을 업데이트합니다.
   /// 
   /// 플랫폼별 전략에 따라 다르게 처리됩니다:
@@ -144,10 +170,12 @@ class HiveTodoRepository implements TodoRepository {
   ///   - 데이터베이스 업데이트 실패 시
   @override
   Future<void> updateTodo(TodoItem todo) async {
-    await _platformStrategy.updateTodo(todo);
     if (_platformStrategy.shouldUseFirebaseOnly()) {
-      // Firebase-only 플랫폼: 문서 ID 기반 업데이트
-      await TodoDatabase.updateTodo(0, todo);
+      // Firebase 전용 플랫폼: Firebase에서 업데이트
+      final syncService = FirebaseSyncService();
+      if (todo.firebaseDocId != null) {
+        await syncService.updateTodoInFirestore(todo);
+      }
     } else {
       // 모바일 플랫폼: 인덱스를 찾아서 업데이트
       final todos = await getTodos();
@@ -156,6 +184,8 @@ class HiveTodoRepository implements TodoRepository {
         (t.title == todo.title && t.dueDate == todo.dueDate));
       if (index != -1) {
         await TodoDatabase.updateTodo(index, todo);
+        // 백그라운드에서 Firebase 동기화
+        _syncUpdateToFirebaseInBackground(todo);
       }
     }
   }
@@ -174,10 +204,12 @@ class HiveTodoRepository implements TodoRepository {
   ///   - 데이터베이스 삭제 실패 시
   @override
   Future<void> deleteTodo(TodoItem todo) async {
-    await _platformStrategy.deleteTodo(todo);
     if (_platformStrategy.shouldUseFirebaseOnly()) {
-      // Firebase-only 플랫폼: TodoItem 기반 직접 삭제
-      await TodoDatabase.deleteTodoByItem(todo);
+      // Firebase 전용 플랫폼: Firebase에서 삭제
+      final syncService = FirebaseSyncService();
+      if (todo.firebaseDocId != null) {
+        await syncService.deleteTodoFromFirestore(todo.firebaseDocId!);
+      }
     } else {
       // 모바일 플랫폼: 인덱스를 찾아서 삭제
       final todos = await getTodos();
@@ -186,6 +218,8 @@ class HiveTodoRepository implements TodoRepository {
         (t.title == todo.title && t.dueDate == todo.dueDate));
       if (index != -1) {
         await TodoDatabase.deleteTodo(index);
+        // 백그라운드에서 Firebase에서도 삭제
+        _syncDeleteToFirebaseInBackground(todo);
       }
     }
   }

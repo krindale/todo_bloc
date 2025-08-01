@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:todo_bloc/model/todo_item.dart';
+import 'package:todo_bloc/domain/entities/todo_entity.dart';
 import 'package:todo_bloc/services/platform_strategy.dart';
 
 // Mock 클래스들 생성
@@ -17,11 +18,11 @@ void main() {
     late TodoItem testTodo;
 
     setUp(() {
-      testTodo = TodoItem(
+      testTodo = TodoItem.fromPriority(
         title: 'Test Todo',
-        content: 'Test Content',
+        priorityEnum: TodoPriority.medium,
         dueDate: DateTime.now(),
-        priority: Priority.medium,
+        category: 'Personal',
         firebaseDocId: 'test-doc-id',
       );
     });
