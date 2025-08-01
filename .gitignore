@@ -72,3 +72,7 @@ windows/flutter/generated_plugins.cmake
 windows/flutter/generated_plugin_registrant.cc
 linux/flutter/generated_plugin_registrant.cc
 linux/flutter/generated_plugins.cmake
+.python-version
+main.py
+pyproject.toml
+uv.lock
