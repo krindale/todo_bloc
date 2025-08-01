@@ -146,10 +146,15 @@ class TodoEntity extends Equatable {
     );
   }
 
-  /// 마감일이 지났는지 확인
+  /// 마감일이 지났는지 확인 (날짜 기준)
   bool get isOverdue {
     if (isCompleted) return false;
-    return DateTime.now().isAfter(dueDate);
+    
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final dueDay = DateTime(dueDate.year, dueDate.month, dueDate.day);
+    
+    return today.isAfter(dueDay);
   }
 
   /// 오늘이 마감일인지 확인
