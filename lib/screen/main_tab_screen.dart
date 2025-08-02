@@ -10,6 +10,7 @@ import 'calendar/calendar_screen.dart';
 import 'task_summary_screen.dart';
 import 'saved_link_screen.dart';
 import '../widgets/ai_generator/ai_todo_generator_dialog.dart';
+import '../widgets/theme/theme_toggle_switch.dart';
 
 /// 탭 인덱스 Provider
 final selectedTabIndexProvider = StateProvider<int>((ref) => 0);
@@ -90,6 +91,13 @@ class _MainTabScreenState extends ConsumerState<MainTabScreen>
       elevation: 0,
       backgroundColor: Theme.of(context).colorScheme.surface,
       foregroundColor: Theme.of(context).colorScheme.onSurface,
+      actions: [
+        // 다크모드 토글 스위치
+        const Padding(
+          padding: EdgeInsets.only(right: 8.0),
+          child: ThemeToggleSwitch.compact(),
+        ),
+      ],
       bottom: TabBar(
         controller: _tabController,
         labelColor: Theme.of(context).colorScheme.primary,
