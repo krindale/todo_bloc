@@ -259,6 +259,92 @@ flutter test test/model/
 flutter test --watch
 ```
 
+## 🤖 Claude Code 개발 워크플로우
+
+### 📋 AI Template 시스템 (https://aitmpl.com/)
+이 프로젝트는 Claude Code와 AI Template을 활용한 스마트 개발 워크플로우를 지원합니다.
+
+#### 🎯 주요 템플릿 활용법
+
+**Flutter 개발 템플릿**
+```bash
+# Flutter 위젯 생성
+/implement component TodoCard with Material Design 3
+
+# 서비스 클래스 구현  
+/implement service TaskCategorizationService with dependency injection
+
+# Repository 패턴 적용
+/implement repository pattern for TodoRepository with Hive and Firebase
+```
+
+**테스트 코드 생성**
+```bash
+# 단위 테스트 생성
+/test create unit tests for TaskStatisticsService
+
+# 통합 테스트 생성  
+/test create integration tests for Firebase sync
+
+# Mock 객체 생성
+/test create mocks for TodoRepository dependencies
+```
+
+**리팩토링 및 최적화**
+```bash
+# 코드 리팩토링
+/improve code quality in lib/services/ with SOLID principles
+
+# 성능 최적화
+/optimize performance for TodoProvider state management
+
+# 아키텍처 개선
+/analyze architecture and suggest improvements
+```
+
+**문서화**
+```bash
+# API 문서 생성
+/document TodoRepository public methods
+
+# README 업데이트
+/document new features in project README
+
+# 코드 주석 추가
+/document complex algorithms with inline comments
+```
+
+#### 💡 스마트 개발 팁
+
+**프로젝트 분석**
+- `/analyze project structure` - 전체 프로젝트 구조 분석
+- `/analyze dependencies` - 패키지 의존성 검토
+- `/analyze performance bottlenecks` - 성능 병목 지점 식별
+
+**자동 코드 생성**
+- `/generate Riverpod providers for new models` - Provider 자동 생성
+- `/generate test fixtures for TodoItem` - 테스트 데이터 생성
+- `/generate error handling for API calls` - 에러 처리 코드 생성
+
+**품질 관리**
+- `/review code quality in recent commits` - 코드 품질 리뷰
+- `/check security vulnerabilities` - 보안 취약점 검사
+- `/validate Flutter best practices` - Flutter 베스트 프랙티스 검증
+
+#### 🔧 Claude Code 설정
+
+프로젝트 루트의 `CLAUDE.md` 파일을 참조하여 프로젝트별 설정을 확인하세요:
+- 자주 사용하는 Flutter 명령어
+- 테스트 실행 가이드라인
+- 빌드 및 배포 프로세스
+- 문제 해결 체크리스트
+
+#### 📚 AI Template 리소스
+- **공식 사이트**: https://aitmpl.com/
+- **Flutter 전용 템플릿**: Flutter 개발에 최적화된 프롬프트 모음
+- **Best Practices**: Claude Code를 활용한 효율적인 개발 방법론
+- **커뮤니티 템플릿**: 개발자들이 공유하는 유용한 템플릿들
+
 ## 🛠️ 개발 워크플로우
 
 ### 🆕 새로운 기능 개발
