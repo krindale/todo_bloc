@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../model/todo_item.dart';
+import '../../domain/entities/todo_entity.dart';
 import 'repository_provider.dart';
 
 part 'todo_provider.g.dart';
@@ -50,11 +51,14 @@ class TodoList extends _$TodoList {
       final todo = currentState[index];
       final updatedTodo = TodoItem(
         title: todo.title,
-        content: todo.content,
-        dueDate: todo.dueDate,
         priority: todo.priority,
+        dueDate: todo.dueDate,
         isCompleted: !todo.isCompleted,
+        category: todo.category,
         firebaseDocId: todo.firebaseDocId,
+        alarmTime: todo.alarmTime,
+        hasAlarm: todo.hasAlarm,
+        notificationId: todo.notificationId,
       );
       await updateTodo(updatedTodo);
     }
@@ -77,7 +81,7 @@ Future<List<TodoItem>> incompleteTodos(IncompleteTodosRef ref) async {
 
 /// 우선순위별 Todo 항목 필터링 provider
 @riverpod
-Future<List<TodoItem>> todosByPriority(TodosByPriorityRef ref, Priority priority) async {
+Future<List<TodoItem>> todosByPriority(TodosByPriorityRef ref, TodoPriority priority) async {
   final todos = await ref.watch(todoListProvider.future);
-  return todos.where((todo) => todo.priority == priority).toList();
+  return todos.where((todo) => todo.priorityEnum == priority).toList();
 }

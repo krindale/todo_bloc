@@ -32,6 +32,8 @@ import 'screen/login/signup_screen.dart';
 import 'services/user_session_service.dart';
 import 'services/app_initialization_service.dart';
 import 'services/system_tray_service.dart';
+import 'services/theme_service.dart';
+import 'theme/app_theme.dart';
 import 'services/web_notification_helper.dart' if (dart.library.io) 'services/web_notification_helper_stub.dart';
 
 void main() async {
@@ -43,6 +45,9 @@ void main() async {
 
   // SRP 적용: 초기화 서비스로 분리
   final initFacade = AppInitializationFacade.create();
+  
+  // 테마 서비스 초기화
+  final themeService = ThemeService.instance;
   
   try {
     await initFacade.initializeAll();
@@ -163,7 +168,7 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> with WindowListener {
+class _MyAppState extends State<MyApp> with WindowListener, WidgetsBindingObserver {
 
   @override
   void initState() {
@@ -172,6 +177,9 @@ class _MyAppState extends State<MyApp> with WindowListener {
       windowManager.addListener(this);
       _setPreventClose();
     }
+    
+    // 시스템 테마 변경 감지를 위한 옵저버 등록
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
@@ -179,6 +187,9 @@ class _MyAppState extends State<MyApp> with WindowListener {
     if (!kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux)) {
       windowManager.removeListener(this);
     }
+    
+    // 시스템 테마 변경 감지 옵저버 해제
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -192,6 +203,13 @@ class _MyAppState extends State<MyApp> with WindowListener {
     await SystemTrayService().hideApp();
   }
 
+  @override
+  void didChangePlatformBrightness() {
+    super.didChangePlatformBrightness();
+    // 시스템 테마 변경 시 ThemeService에 알림
+    ThemeService.instance.onSystemThemeChanged();
+  }
+
   Future<bool> _checkFirebaseInit() async {
     final initFacade = AppInitializationFacade.create();
     return await initFacade.initializeFirebase();
@@ -199,53 +217,57 @@ class _MyAppState extends State<MyApp> with WindowListener {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      navigatorKey: navigatorKey,
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        useMaterial3: false, // Material 3 비활성화
-      ),
-      home: FutureBuilder(
-        future: _checkFirebaseInit(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(),
-              ),
-            );
-          }
+    return AnimatedBuilder(
+      animation: ThemeService.instance,
+      builder: (context, child) {
+        return MaterialApp(
+          navigatorKey: navigatorKey,
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: ThemeService.instance.themeMode,
+          home: FutureBuilder(
+            future: _checkFirebaseInit(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                  body: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
 
-          if (snapshot.data == true) {
-            return StreamBuilder<User?>(
-              stream: FirebaseAuth.instance.authStateChanges(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Scaffold(
-                    body: Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                }
+              if (snapshot.data == true) {
+                return StreamBuilder<User?>(
+                  stream: FirebaseAuth.instance.authStateChanges(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Scaffold(
+                        body: Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
 
-                if (snapshot.hasData) {
-                  return const AuthenticatedApp();
-                } else {
-                  return const LoginScreen();
-                }
-              },
-            );
-          } else {
-            // Firebase 초기화 실패 시 바로 TODO 화면으로
-            return const MainTabScreen();
-          }
-        },
-      ),
-      routes: {
-        '/login': (context) => const LoginScreen(),
-        '/signup': (context) => const SignupScreen(),
-        '/home': (context) => const MainTabScreen(),
+                    if (snapshot.hasData) {
+                      return const AuthenticatedApp();
+                    } else {
+                      return const LoginScreen();
+                    }
+                  },
+                );
+              } else {
+                // Firebase 초기화 실패 시 바로 TODO 화면으로
+                return const MainTabScreen();
+              }
+            },
+          ),
+          routes: {
+            '/login': (context) => const LoginScreen(),
+            '/signup': (context) => const SignupScreen(),
+            '/home': (context) => const MainTabScreen(),
+          },
+        );
       },
     );
   }

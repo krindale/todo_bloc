@@ -27,6 +27,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import '../domain/entities/todo_entity.dart';
 
 part 'todo_item.g.dart'; // build_runner로 자동 생성
 
@@ -36,7 +37,7 @@ class TodoItem extends HiveObject {
   String title;
 
   @HiveField(1)
-  String priority;
+  String priority; // TodoPriority enum을 String으로 저장
 
   @HiveField(2)
   DateTime dueDate;
@@ -70,6 +71,27 @@ class TodoItem extends HiveObject {
     this.hasAlarm = false,
     this.notificationId,
   });
+
+  /// TodoPriority enum에서 생성하는 생성자
+  TodoItem.fromPriority({
+    required this.title,
+    required TodoPriority priorityEnum,
+    required this.dueDate,
+    this.isCompleted = false,
+    this.category,
+    this.firebaseDocId,
+    this.alarmTime,
+    this.hasAlarm = false,
+    this.notificationId,
+  }) : priority = priorityEnum.displayName;
+
+  /// priority를 TodoPriority enum으로 반환
+  TodoPriority get priorityEnum => TodoPriority.fromString(priority);
+
+  /// priority를 TodoPriority enum으로 설정
+  void setPriority(TodoPriority priorityEnum) {
+    priority = priorityEnum.displayName;
+  }
 
   /// 듀데이트와 알람 시간을 조합하여 실제 알람 DateTime 반환
   DateTime? get effectiveAlarmTime {

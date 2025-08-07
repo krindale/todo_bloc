@@ -246,7 +246,7 @@ class ErrorHandler {
     }
     
     // 형변환 에러
-    if (error is TypeError || error is CastError) {
+    if (error is TypeError) {
       return AppError(
         type: AppErrorType.validation,
         message: 'Type Error: $error',

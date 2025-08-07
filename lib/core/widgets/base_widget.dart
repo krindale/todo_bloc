@@ -18,7 +18,7 @@ abstract class BaseStatefulWidget extends StatefulWidget {
 
 /// **기본 State 추상 클래스**
 abstract class BaseState<T extends BaseStatefulWidget> extends State<T>
-    with ErrorHandlingMixin, WidgetBindingObserver {
+    with ErrorHandlingMixin implements WidgetsBindingObserver {
   
   /// 위젯이 마운트된 상태인지 여부
   @override
@@ -118,7 +118,6 @@ abstract class BaseState<T extends BaseStatefulWidget> extends State<T>
   /// 앱 생명주기 변경 감지
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
     onAppLifecycleChanged(state);
   }
   
@@ -141,7 +140,7 @@ abstract class BaseState<T extends BaseStatefulWidget> extends State<T>
           Icon(
             Icons.error_outline,
             size: 64,
-            color: ThemeConstants.errorColor.withOpacity(0.7),
+            color: ThemeConstants.errorColor.withValues(alpha: 0.7),
           ),
           const SizedBox(height: LayoutConstants.defaultSpacing),
           Text(
